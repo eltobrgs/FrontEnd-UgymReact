@@ -3,20 +3,19 @@ import { FaCog, FaUser, FaBell } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
 
 interface HeaderProps {
-  title: string;
+  
   weeklyProgress: number;
   userName: string;
 }
 
-const Header: FC<HeaderProps> = ({ title, weeklyProgress, userName }) => {
+const Header: FC<HeaderProps> = ({ weeklyProgress, userName }) => {
   const navigate = useNavigate();
 
   return (
     <header className="bg-white shadow-sm">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
         <div className="flex items-center space-x-4">
-          <h1 className="text-xl font-bold text-gray-800">{title}</h1>
-          <div className="flex items-center space-x-2">
+\          <div className="flex items-center space-x-2">
             <span className="text-gray-700">Progresso Semanal:</span>
             <span className="text-indigo-600 font-semibold">{weeklyProgress}%</span>
           </div>

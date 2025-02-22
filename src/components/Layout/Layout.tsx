@@ -33,7 +33,7 @@ const Layout: FC<LayoutProps> = ({
         onToggle={toggleSidebar}
       />
       <div className="lg:ml-64 min-h-screen flex flex-col transition-all duration-300">
-        <Header weeklyProgress={weeklyProgress} />
+        <Header weeklyProgress={weeklyProgress} userName={userName} />
         <main className="flex-1 p-4">
           {children}
         </main>

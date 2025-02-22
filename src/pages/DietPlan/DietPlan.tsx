@@ -4,11 +4,24 @@ import { FaAppleAlt, FaClock, FaFire, FaWater, FaLeaf } from 'react-icons/fa';
 import ChartsSection from '../../components/ChartsSection/ChartsSection';
 import Swal from 'sweetalert2';
 
+interface Food {
+  name: string;
+  amount: string;
+  calories: number;
+}
+
+interface Meal {
+  name: string;
+  time: string;
+  calories: number;
+  foods: Food[];
+}
+
 interface DietPlanProps {
   userName: string;
 }
 
-const DietPlan: FC<DietPlanProps> = ({ userName }) => {
+const DietPlan: FC<DietPlanProps> = () => {
   // Dados para o gráfico de calorias
   const caloriesData = [
     { hour: '06:00', calories: 0 },
@@ -21,7 +34,7 @@ const DietPlan: FC<DietPlanProps> = ({ userName }) => {
   ];
 
   // Dados das refeições
-  const meals = [
+  const meals: Meal[] = [
     {
       name: 'Café da Manhã',
       time: '08:00',
@@ -75,8 +88,8 @@ const DietPlan: FC<DietPlanProps> = ({ userName }) => {
   ];
 
   // Função para mostrar os detalhes da refeição
-  const showMealDetails = (meal: any) => {
-    const foodDetails = meal.foods.map((food: any) => `${food.name} (${food.amount}) - ${food.calories} kcal`).join('<br/>');
+  const showMealDetails = (meal: Meal) => {
+    const foodDetails = meal.foods.map((food) => `${food.name} (${food.amount}) - ${food.calories} kcal`).join('<br/>');
     
     Swal.fire({
       title: meal.name,

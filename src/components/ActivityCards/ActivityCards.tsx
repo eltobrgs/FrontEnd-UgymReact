@@ -1,5 +1,4 @@
 import React from 'react';
-import { FaBed, FaBiking, FaRunning, FaDumbbell } from 'react-icons/fa';
 
 interface Activity {
   icon: React.ElementType;
