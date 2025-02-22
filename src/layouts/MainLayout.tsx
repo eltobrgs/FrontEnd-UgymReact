@@ -1,17 +1,11 @@
 import { FC, ReactNode } from 'react';
 import Header from '../components/Header/Header';
 import Sidebar from '../components/Sidebar/Sidebar';
+import { UserData } from '../contexts/UserContext';
 
 interface MainLayoutProps {
   children: ReactNode;
-  userData: {
-    name: string;
-    plan: string;
-    image: string;
-    stats: {
-      progress: number;
-    };
-  };
+  userData: UserData | null;
   isSidebarOpen: boolean;
   onToggleSidebar: () => void;
 }
@@ -27,13 +21,13 @@ const MainLayout: FC<MainLayoutProps> = ({
       <Sidebar
         isOpen={isSidebarOpen}
         onToggle={onToggleSidebar}
-        userName={userData.name}
-        userPlan={userData.plan}
-        userImage={userData.image}
+        userName={userData?.name || 'Usuário'}
+        userPlan={userData?.plan || 'Plano Básico'}
+        userImage={userData?.image}
       />
       <div className="flex-1 flex flex-col overflow-hidden">
         <Header 
-          userName={userData.name}
+          userName={userData?.name || 'Usuário'}
         />
         <main className="flex-1 overflow-x-hidden overflow-y-auto">
           {children}

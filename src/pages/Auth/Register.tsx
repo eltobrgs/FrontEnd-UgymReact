@@ -4,6 +4,7 @@ import { FiMail, FiLock, FiUser } from 'react-icons/fi';
 import Input from '../../components/input/Input';
 import Button from '../../components/Button/Button';
 import logo from '../../assets/logo.png';
+import Swal from 'sweetalert2';
 
 const Register: FC = () => {
   const navigate = useNavigate();
@@ -28,17 +29,36 @@ const Register: FC = () => {
     
     if (formData.password !== formData.confirmPassword) {
       console.error('As senhas não coincidem');
+      Swal.fire('Erro!', 'As senhas não coincidem.', 'error');
       return;
     }
 
     setIsLoading(true);
     
     try {
-      // Simulando um delay de registro
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      const response = await fetch('http://localhost:3000/cadastro', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name: formData.name,
+          email: formData.email,
+          password: formData.password,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Erro ao fazer cadastro');
+      }
+
+      const data = await response.json();
+      localStorage.setItem('token', data.token);
+      Swal.fire('Sucesso!', 'Cadastro realizado com sucesso!', 'success');
       navigate('/auth/profile-setup');
     } catch (error) {
       console.error('Erro ao fazer cadastro:', error);
+      Swal.fire('Erro!', 'Falha ao realizar cadastro. Tente novamente.', 'error');
     } finally {
       setIsLoading(false);
     }

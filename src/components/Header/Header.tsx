@@ -18,21 +18,21 @@ const Header: FC<HeaderProps> = ({ userName }) => {
         <div className="flex items-center space-x-4">
           <button
             onClick={() => navigate('/notifications')}
-            className="p-2 text-gray-600 hover:text-indigo-600 hover:bg-gray-100 rounded-full transition-colors"
+            className="p-2 text-gray-600 hover:text-red-600 hover:bg-gray-100 rounded-full transition-colors"
             aria-label="Notificações"
           >
             <FaBell size={20} />
           </button>
           <button
             onClick={() => navigate('/profile')}
-            className="p-2 text-gray-600 hover:text-indigo-600 hover:bg-gray-100 rounded-full transition-colors"
+            className="p-2 text-gray-600 hover:text-red-600 hover:bg-gray-100 rounded-full transition-colors"
             aria-label="Perfil"
           >
             <FaUser size={20} />
           </button>
           <button
             onClick={() => navigate('/settings')}
-            className="p-2 text-gray-600 hover:text-indigo-600 hover:bg-gray-100 rounded-full transition-colors"
+            className="p-2 text-gray-600 hover:text-red-600 hover:bg-gray-100 rounded-full transition-colors"
             aria-label="Configurações"
           >
             <FaCog size={20} />

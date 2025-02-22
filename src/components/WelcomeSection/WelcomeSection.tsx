@@ -86,7 +86,7 @@ export const WelcomeSection: React.FC<WelcomeSectionProps> = ({ userName }) => {
       <div className="flex justify-between items-center mb-4">
         <button
           onClick={() => changeMonth(-1)}
-          className="text-gray-600 hover:text-indigo-600"
+          className="text-gray-600 hover:text-red-600"
         >
           &lt; Mês Anterior
         </button>
@@ -95,7 +95,7 @@ export const WelcomeSection: React.FC<WelcomeSectionProps> = ({ userName }) => {
         </span>
         <button
           onClick={() => changeMonth(1)}
-          className="text-gray-600 hover:text-indigo-600"
+          className="text-gray-600 hover:text-red-600"
         >
           Próximo Mês &gt;
         </button>

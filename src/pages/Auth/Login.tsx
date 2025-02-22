@@ -5,10 +5,13 @@ import Input from '../../components/input/Input';
 import Button from '../../components/Button/Button';
 import logo from '../../assets/logo.png';
 import { useAuth } from '../../contexts/AuthContext';
+import { useUser } from '../../contexts/UserContext';
+import Swal from 'sweetalert2';
 
 const Login: FC = () => {
   const navigate = useNavigate();
   const { setIsAuthenticated } = useAuth();
+  const { fetchUserData } = useUser();
   const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
     email: '',
@@ -28,12 +31,27 @@ const Login: FC = () => {
     setIsLoading(true);
     
     try {
-      // Simulando um delay de login
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      const response = await fetch('http://localhost:3000/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
+      });
+
+      if (!response.ok) {
+        throw new Error('Erro ao fazer login');
+      }
+
+      const data = await response.json();
+      localStorage.setItem('token', data.token);
       setIsAuthenticated(true);
+      await fetchUserData();
+      Swal.fire('Sucesso!', 'Login realizado com sucesso!', 'success');
       navigate('/');
     } catch (error) {
       console.error('Erro ao fazer login:', error);
+      Swal.fire('Erro!', 'Falha ao realizar login. Verifique suas credenciais.', 'error');
     } finally {
       setIsLoading(false);
     }

@@ -36,7 +36,7 @@ const Calendar: FC<CalendarProps> = ({ onDayClick, selectedDay }) => {
       <div className="flex justify-between items-center mb-4">
         <button
           onClick={() => setCurrentDate(new Date(currentDate.setMonth(currentDate.getMonth() - 1)))}
-          className="text-gray-600 hover:text-indigo-600"
+          className="text-gray-600 hover:text-red-600"
         >
           &lt;
         </button>
@@ -45,7 +45,7 @@ const Calendar: FC<CalendarProps> = ({ onDayClick, selectedDay }) => {
         </span>
         <button
           onClick={() => setCurrentDate(new Date(currentDate.setMonth(currentDate.getMonth() + 1)))}
-          className="text-gray-600 hover:text-indigo-600"
+          className="text-gray-600 hover:text-red-600"
         >
           &gt;
         </button>
@@ -62,9 +62,9 @@ const Calendar: FC<CalendarProps> = ({ onDayClick, selectedDay }) => {
             onClick={() => handleDayClick(day)}
             className={`p-2 rounded-full ${
               day === selectedDay
-                ? 'bg-indigo-600 text-white' // Destaque para o dia clicado
+                ? 'bg-red-600 text-white' // Destaque para o dia clicado
                 : isToday(day)
-                ? 'border-2 border-indigo-600' // Destaque para o dia atual
+                ? 'border-2 border-red-600' // Destaque para o dia atual
                 : 'bg-white text-gray-600 hover:bg-gray-50'
             } font-medium transition-colors`}
           >

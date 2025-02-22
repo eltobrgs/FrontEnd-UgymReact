@@ -1,13 +1,13 @@
 import { FC, useState, FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FiUser, FiCalendar } from 'react-icons/fi';
 import { FaWeight, FaRulerVertical } from 'react-icons/fa';
 import Input from '../../components/input/Input';
 import Button from '../../components/Button/Button';
 import { useAuth } from '../../contexts/AuthContext';
+import { useUser } from '../../contexts/UserContext';
+import Swal from 'sweetalert2';
 
 interface ProfileFormData {
-  fullName: string;
   birthDate: string;
   gender: string;
   height: string;
@@ -17,14 +17,16 @@ interface ProfileFormData {
   experienceLevel: string;
   medicalConditions: string;
   physicalLimitations: string;
+  healthCondition: string;
+  experience: string;
 }
 
 const ProfileSetup: FC = () => {
   const navigate = useNavigate();
   const { setIsAuthenticated } = useAuth();
+  const { fetchUserData } = useUser();
   const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState<ProfileFormData>({
-    fullName: '',
     birthDate: '',
     gender: '',
     height: '',
@@ -33,7 +35,9 @@ const ProfileSetup: FC = () => {
     activityLevel: '',
     experienceLevel: '',
     medicalConditions: '',
-    physicalLimitations: ''
+    physicalLimitations: '',
+    healthCondition: '',
+    experience: ''
   });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
@@ -49,12 +53,27 @@ const ProfileSetup: FC = () => {
     setIsLoading(true);
     
     try {
-      // Simulando um delay de salvamento
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      setIsAuthenticated(true); // Define o usuário como autenticado
-      navigate('/'); // Redireciona para o dashboard
+      const token = localStorage.getItem('token');
+      const response = await fetch('http://localhost:3000/preferences', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify(formData),
+      });
+
+      if (!response.ok) {
+        throw new Error('Erro ao salvar preferências');
+      }
+
+      setIsAuthenticated(true);
+      await fetchUserData();
+      Swal.fire('Sucesso!', 'Preferências salvas com sucesso!', 'success');
+      navigate('/');
     } catch (error) {
       console.error('Erro ao salvar perfil:', error);
+      Swal.fire('Erro!', 'Falha ao salvar preferências. Tente novamente.', 'error');
     } finally {
       setIsLoading(false);
     }
@@ -76,23 +95,11 @@ const ProfileSetup: FC = () => {
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <Input
-                label="Nome Completo"
-                type="text"
-                name="fullName"
-                value={formData.fullName}
-                onChange={handleChange}
-                icon={<FiUser size={20} />}
-                placeholder="Seu nome completo"
-                required
-              />
-
-              <Input
                 label="Data de Nascimento"
                 type="date"
                 name="birthDate"
                 value={formData.birthDate}
                 onChange={handleChange}
-                icon={<FiCalendar size={20} />}
                 required
               />
 
@@ -112,25 +119,6 @@ const ProfileSetup: FC = () => {
                   <option value="feminino">Feminino</option>
                   <option value="outro">Outro</option>
                   <option value="prefiro_nao_dizer">Prefiro não dizer</option>
-                </select>
-              </div>
-
-              <div className="w-full">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Objetivo Principal
-                </label>
-                <select
-                  name="goal"
-                  value={formData.goal}
-                  onChange={handleChange}
-                  className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                  required
-                >
-                  <option value="">Selecione...</option>
-                  <option value="perda_peso">Perda de Peso</option>
-                  <option value="ganho_massa">Ganho de Massa Muscular</option>
-                  <option value="condicionamento">Melhorar Condicionamento</option>
-                  <option value="saude">Saúde e Bem-estar</option>
                 </select>
               </div>
 
@@ -182,11 +170,11 @@ const ProfileSetup: FC = () => {
 
               <div className="w-full">
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Experiência com Exercícios
+                  Nível de Experiência
                 </label>
                 <select
-                  name="experienceLevel"
-                  value={formData.experienceLevel}
+                  name="experience"
+                  value={formData.experience}
                   onChange={handleChange}
                   className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500"
                   required
@@ -197,6 +185,15 @@ const ProfileSetup: FC = () => {
                   <option value="avancado">Avançado</option>
                 </select>
               </div>
+
+              <Input
+                label="Condições de Saúde"
+                type="text"
+                name="healthCondition"
+                value={formData.healthCondition}
+                onChange={handleChange}
+                placeholder="Descreva suas condições de saúde (opcional)"
+              />
             </div>
 
             <div className="space-y-4">
