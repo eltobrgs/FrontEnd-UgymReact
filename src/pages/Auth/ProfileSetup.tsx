@@ -54,7 +54,7 @@ const ProfileSetup: FC = () => {
     
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:3000/preferences', {
+      const response = await fetch('https://backend-ugymreact.onrender.com/preferences', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
