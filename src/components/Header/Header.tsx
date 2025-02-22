@@ -6,14 +6,16 @@ interface HeaderProps {
   userName: string;
 }
 
-const Header: FC<HeaderProps> = (userName) => {
+const Header: FC<HeaderProps> = ({ userName }) => {
   const navigate = useNavigate();
 
   return (
     <header className="bg-white shadow-sm">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
+        <div className="flex-1 flex justify-center">
+          <span className="text-gray-700">Olá, {userName}</span>
+        </div>
         <div className="flex items-center space-x-4">
-          <span className="text-gray-700">Olá, {userName.userName}</span>
           <button
             onClick={() => navigate('/notifications')}
             className="p-2 text-gray-600 hover:text-indigo-600 hover:bg-gray-100 rounded-full transition-colors"
