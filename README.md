@@ -1,4 +1,4 @@
-# Meu App de Fitness
+# Ugym
 
 Este é um aplicativo de fitness desenvolvido em React que permite aos usuários gerenciar seus planos de treino, dieta e acompanhar seu progresso. O aplicativo possui uma interface amigável e é responsivo, funcionando bem em dispositivos móveis e desktops.
 
