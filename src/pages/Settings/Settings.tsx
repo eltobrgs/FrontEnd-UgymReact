@@ -2,6 +2,7 @@ import { FC } from 'react';
 import { FaUser, FaBell, FaLock, FaPalette, FaLanguage, FaQuestionCircle, FaSignOutAlt } from 'react-icons/fa';
 import { Switch } from '@headlessui/react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../../contexts/AuthContext';
 
 interface SettingsProps {
   userName: string;
@@ -23,6 +24,7 @@ interface SettingsGroup {
 
 const Settings: FC<SettingsProps> = ({ userName }) => {
   const navigate = useNavigate();
+  const { setIsAuthenticated } = useAuth();
 
   const settingsGroups: SettingsGroup[] = [
     {
@@ -108,9 +110,8 @@ const Settings: FC<SettingsProps> = ({ userName }) => {
       <div className="mt-8">
         <button
           onClick={() => {
-            // Aqui você pode adicionar a lógica de logout
-            console.log('Usuário saiu');
-            navigate('/'); // Redireciona para a página inicial ou de login
+            setIsAuthenticated(false);
+            navigate('/auth/login');
           }}
           className="flex items-center space-x-2 bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors"
         >

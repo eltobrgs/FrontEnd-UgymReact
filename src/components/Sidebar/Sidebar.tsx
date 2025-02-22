@@ -8,10 +8,8 @@ import {
   FaUsers, 
   FaUserTie,
   FaUserFriends,
-  FaCreditCard,
   FaTools,
   FaCalendarAlt,
-  FaImages,
   FaTimes
 } from 'react-icons/fa';
 // import { Link } from 'react-router-dom';
@@ -34,10 +32,8 @@ const Sidebar: FC<SidebarProps> = ({ userName, userPlan, userImage, isOpen, onTo
     { icon: FaUsers, text: 'Treinadores', path: '/trainers' },
     { icon: FaUserTie, text: 'Perfil do Treinador', path: '/trainer-profile' },
     { icon: FaUserFriends, text: 'Membros', path: '/members' },
-    { icon: FaCreditCard, text: 'Pagamentos', path: '/payments' },
     { icon: FaTools, text: 'Equipamentos', path: '/equipment' },
     { icon: FaCalendarAlt, text: 'Eventos da Academia', path: '/events' },
-    { icon: FaImages, text: 'Galeria', path: '/gallery' },
     { icon: FaUserTie, text: 'Meu Perfil', path: '/profile' },
   ];
 
