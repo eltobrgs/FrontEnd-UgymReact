@@ -33,7 +33,6 @@ const MainLayout: FC<MainLayoutProps> = ({
       />
       <div className="flex-1 flex flex-col overflow-hidden">
         <Header 
-          weeklyProgress={userData.stats.progress} 
           userName={userData.name}
         />
         <main className="flex-1 overflow-x-hidden overflow-y-auto">
