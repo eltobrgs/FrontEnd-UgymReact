@@ -21,9 +21,9 @@ const Button: FC<ButtonProps> = ({
   const baseStyles = 'rounded-full font-semibold transition-colors duration-200 flex items-center justify-center';
   
   const variants = {
-    primary: 'bg-indigo-600 text-white hover:bg-indigo-700 disabled:bg-indigo-400',
+    primary: 'bg-red-600 text-white hover:bg-red-700 disabled:bg-red-400',
     secondary: 'bg-gray-200 text-gray-800 hover:bg-gray-300 disabled:bg-gray-100',
-    outline: 'border-2 border-indigo-600 text-indigo-600 hover:bg-indigo-50 disabled:border-indigo-300 disabled:text-indigo-300'
+    outline: 'border-2 border-red-600 text-red-600 hover:bg-red-50 disabled:border-red-300 disabled:text-red-300'
   };
 
   const sizes = {
