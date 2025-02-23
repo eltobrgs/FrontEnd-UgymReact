@@ -1,10 +1,10 @@
 import { FC } from 'react';
 import { FiEdit2 } from 'react-icons/fi';
-import { 
-  FaWeight, 
-  FaRulerVertical, 
-  FaPercent, 
-  FaBullseye, 
+import {
+  FaWeight,
+  FaRulerVertical,
+  FaPercent,
+  FaBullseye,
   FaHeartbeat,
   FaEnvelope,
   FaBirthdayCake,
@@ -15,6 +15,7 @@ import {
   FaClipboardList
 } from 'react-icons/fa';
 import { useUser } from '../../contexts/UserContext';
+import { useNavigate } from 'react-router-dom';
 
 interface UserProfileProps {
   userName: string;
@@ -22,6 +23,14 @@ interface UserProfileProps {
 
 const UserProfile: FC<UserProfileProps> = () => {
   const { userData } = useUser();
+  const navigate = useNavigate();
+
+  const handleEditProfile = () => {
+    if (userData?.id) {
+      localStorage.setItem('userId', userData.id.toString());
+      navigate('/edit-profile');
+    }
+  };
 
   return (
     <div className="p-4 md:p-8 bg-gray-100 min-h-screen">
@@ -32,12 +41,18 @@ const UserProfile: FC<UserProfileProps> = () => {
             <div className="w-24 h-24 rounded-full bg-gray-700 flex items-center justify-center">
               <span className="text-3xl">👤</span>
             </div>
-            <button className="absolute bottom-0 right-0 bg-red-600 p-2 rounded-full hover:bg-red-700 transition-colors">
+            <button
+              className="absolute bottom-0 right-0 bg-red-600 p-2 rounded-full hover:bg-red-700 transition-colors"
+              onClick={handleEditProfile}
+            >
               <FiEdit2 size={16} />
             </button>
           </div>
           <div>
             <h1 className="text-3xl font-bold">{userData?.name || 'Usuário'}</h1>
+            <div className="mt-2 inline-block px-3 py-1 bg-red-500 rounded-full text-sm">
+              ID: {userData?.id}
+            </div>
           </div>
         </div>
       </div>
@@ -58,6 +73,10 @@ const UserProfile: FC<UserProfileProps> = () => {
             <div className="flex items-center space-x-3 text-gray-600">
               <FaVenusMars className="text-red-600" />
               <span>{userData?.preferences?.gender || 'Não informado'}</span>
+            </div>
+            <div className="flex items-center space-x-3 text-gray-600">
+              <FaBullseye className="text-red-600" />
+              <span>Objetivo: {userData?.preferences?.goal || 'Não definido'}</span>
             </div>
           </div>
         </div>
@@ -126,9 +145,11 @@ const UserProfile: FC<UserProfileProps> = () => {
 
       {/* Botão de Edição */}
       <div className="fixed bottom-8 right-8">
-        <button className="bg-red-600 text-white px-6 py-3 rounded-full shadow-lg hover:bg-red-700 transition-colors flex items-center space-x-2">
-          <FiEdit2 size={20} />
-          <span>Editar Perfil</span>
+        <button
+          className="absolute bottom-0 right-0 bg-red-600 p-2 rounded-full hover:bg-red-700 transition-colors"
+          onClick={handleEditProfile}
+        >
+          <FiEdit2 size={16} />
         </button>
       </div>
     </div>

@@ -20,7 +20,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const token = localStorage.getItem('token');
     if (token) {
       // Verifica se o token é válido fazendo uma requisição ao backend
-      fetch('https://backend-ugymreact.onrender.com/me', {
+      fetch('http://localhost:3000/me', {
         headers: {
           Authorization: `Bearer ${token}`,
         },

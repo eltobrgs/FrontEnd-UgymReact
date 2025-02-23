@@ -4,16 +4,13 @@ import {
   FaHome, 
   FaChartBar, 
   FaDumbbell, 
-  FaUtensils, 
   FaUsers, 
   FaUserTie,
-  FaUserFriends,
-  FaTools,
   FaCalendarAlt,
-  FaTimes
+  FaClipboardList,
+  FaTimes,
+  FaMoneyBillWave
 } from 'react-icons/fa';
-// import { Link } from 'react-router-dom';
-// import { FiHome, FiActivity, FiUser } from 'react-icons/fi';
 
 interface SidebarProps {
   userName: string;
@@ -23,18 +20,17 @@ interface SidebarProps {
   onToggle: () => void;
 }
 
-const Sidebar: FC<SidebarProps> = ({ userName, userPlan, userImage, isOpen, onToggle }) => {
+const Sidebar: FC<SidebarProps> = ({ userName, userImage, isOpen, onToggle }) => {
   const menuItems = [
-    { icon: FaHome, text: 'Visão Geral', path: '/' },
-    { icon: FaDumbbell, text: 'Meu Plano de Treino', path: '/workout-plan' },
-    { icon: FaChartBar, text: 'Meus Relatórios', path: '/reports' },
-    { icon: FaUtensils, text: 'Meu Plano Alimentar', path: '/diet-plan' },
-    { icon: FaUsers, text: 'Treinadores', path: '/trainers' },
-    { icon: FaUserTie, text: 'Perfil do Treinador', path: '/trainer-profile' },
-    { icon: FaUserFriends, text: 'Membros', path: '/members' },
-    { icon: FaTools, text: 'Equipamentos', path: '/equipment' },
-    { icon: FaCalendarAlt, text: 'Eventos da Academia', path: '/events' },
-    { icon: FaUserTie, text: 'Meu Perfil', path: '/profile' },
+    { icon: FaHome, text: 'Dashboard', path: '/' },
+    { icon: FaUsers, text: 'Todos os Alunos', path: '/students' },
+    { icon: FaUsers, text: 'Meus Alunos', path: '/my-students' },
+    { icon: FaDumbbell, text: 'Planos de Treino', path: '/workout-plans' },
+    { icon: FaChartBar, text: 'Relatórios', path: '/reports' },
+    { icon: FaCalendarAlt, text: 'Agenda', path: '/schedule' },
+    { icon: FaClipboardList, text: 'Avaliações', path: '/assessments' },
+    { icon: FaMoneyBillWave, text: 'Financeiro', path: '/financial' },
+    { icon: FaUserTie, text: 'Meu Perfil', path: '/personal-profile' },
   ];
 
   return (
@@ -87,7 +83,7 @@ const Sidebar: FC<SidebarProps> = ({ userName, userPlan, userImage, isOpen, onTo
             </button>
           </div>
           <span className="text-2xl font-bold text-red-600 tracking-wide flex items-center">
-            Ugym
+            Ugym Pro
             <svg 
               stroke="currentColor" 
               fill="currentColor" 
@@ -113,7 +109,7 @@ const Sidebar: FC<SidebarProps> = ({ userName, userPlan, userImage, isOpen, onTo
             />
             <div>
               <h2 className="font-semibold">{userName}</h2>
-              <span className="text-sm px-2 py-1 bg-red-600 rounded-full">{userPlan}</span>
+              <span className="text-sm px-2 py-1 bg-red-600 rounded-full">Personal Trainer</span>
             </div>
           </div>
         </div>
@@ -147,4 +143,4 @@ const Sidebar: FC<SidebarProps> = ({ userName, userPlan, userImage, isOpen, onTo
   );
 };
 
-export default Sidebar;
+export default Sidebar; 

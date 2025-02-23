@@ -1,35 +1,39 @@
 import { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 
+interface Stats {
+  steps: number;
+  calories: number;
+  progress: number;
+}
+
+interface Preferences {
+  birthDate: string;
+  gender: string;
+  goal: string;
+  healthCondition: string;
+  experience: string;
+  height: string;
+  weight: string;
+  activityLevel: string;
+  medicalConditions: string;
+  physicalLimitations: string;
+  imc: number;
+}
+
 export interface UserData {
   id: number;
   name: string;
   email: string;
-  createdAt: string;
+  role: 'USUARIO_COMUM' | 'PERSONAL';
+  preferences?: Preferences;
   plan?: string;
   image?: string;
-  stats?: {
-    steps: number;
-    calories: number;
-    progress: number;
-  };
-  preferences?: {
-    birthDate: string;
-    gender: string;
-    goal: string;
-    healthCondition: string;
-    experience: string;
-    height: string;
-    weight: string;
-    activityLevel: string;
-    medicalConditions: string;
-    physicalLimitations: string;
-    imc?: number;
-  };
+  stats?: Stats;
 }
 
 interface UserContextType {
   userData: UserData | null;
-  setUserData: (data: UserData | null) => void;
+  setUserData: (userData: UserData | null) => void;
   fetchUserData: () => Promise<void>;
 }
 
@@ -52,7 +56,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
       const token = localStorage.getItem('token');
       if (!token) return;
 
-      const userResponse = await fetch('https://backend-ugymreact.onrender.com/me', {
+      const userResponse = await fetch('http://localhost:3000/me', {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -62,7 +66,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
 
       const userData = await userResponse.json();
 
-      const preferencesResponse = await fetch('https://backend-ugymreact.onrender.com/preferences', {
+      const preferencesResponse = await fetch('http://localhost:3000/preferences', {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -96,6 +100,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
 
   useEffect(() => {
     fetchUserData();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (
@@ -105,6 +110,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
   );
 };
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const useUser = () => {
   const context = useContext(UserContext);
   if (!context) {

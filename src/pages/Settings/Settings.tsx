@@ -45,8 +45,8 @@ const Settings: FC<SettingsProps> = () => {
                 <FaUser className="text-indigo-600 text-xl" />
                 <span className="text-lg font-medium">Perfil</span>
               </div>
-              <button 
-                onClick={() => navigate('/profile')}
+              <button
+                onClick={() => navigate('/edit-profile')}
                 className="text-indigo-600 hover:text-indigo-800"
               >
                 Editar
@@ -64,15 +64,13 @@ const Settings: FC<SettingsProps> = () => {
               <Switch
                 checked={notificationsEnabled}
                 onChange={setNotificationsEnabled}
-                className={`${
-                  notificationsEnabled ? 'bg-red-600' : 'bg-gray-200'
-                } relative inline-flex h-6 w-11 items-center rounded-full`}
+                className={`${notificationsEnabled ? 'bg-red-600' : 'bg-gray-200'
+                  } relative inline-flex h-6 w-11 items-center rounded-full`}
               >
                 <span className="sr-only">Ativar notificações</span>
                 <span
-                  className={`${
-                    notificationsEnabled ? 'translate-x-6' : 'translate-x-1'
-                  } inline-block h-4 w-4 transform rounded-full bg-white transition`}
+                  className={`${notificationsEnabled ? 'translate-x-6' : 'translate-x-1'
+                    } inline-block h-4 w-4 transform rounded-full bg-white transition`}
                 />
               </Switch>
             </div>
@@ -141,7 +139,7 @@ const Settings: FC<SettingsProps> = () => {
                 <FaSignOutAlt className="text-red-600 text-xl" />
                 <span className="text-lg font-medium text-red-600">Sair da Conta</span>
               </div>
-              <button 
+              <button
                 onClick={handleLogout}
                 className="text-red-600 hover:text-red-800"
               >
@@ -151,6 +149,7 @@ const Settings: FC<SettingsProps> = () => {
           </div>
         </div>
       </div>
+
     </div>
   );
 };

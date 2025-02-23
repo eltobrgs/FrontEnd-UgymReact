@@ -1,17 +1,17 @@
 import { FC, ReactNode } from 'react';
 import { useLocation } from 'react-router-dom';
-import Sidebar from '../components/UserSidebar/Sidebar';
-import Header from '../components/UserHeader/Header';
+import Sidebar from '../components/PersonalSidebar/PersonalSidebar';
+import Header from '../components/PersonalHeader/PersonalHeader';
 import { UserData } from '../contexts/UserContext';
 
-interface MainLayoutProps {
+interface PersonalLayoutProps {
   children: ReactNode;
   userData: UserData | null;
   isSidebarOpen: boolean;
   onToggleSidebar: () => void;
 }
 
-const MainLayout: FC<MainLayoutProps> = ({ 
+const PersonalLayout: FC<PersonalLayoutProps> = ({ 
   children, 
   userData, 
   isSidebarOpen, 
@@ -29,15 +29,15 @@ const MainLayout: FC<MainLayoutProps> = ({
       <Sidebar
         isOpen={isSidebarOpen}
         onToggle={onToggleSidebar}
-        userName={userData?.name || 'Usuário'}
-        userPlan={userData?.plan || 'Plano Básico'}
+        userName={userData?.name || 'Personal'}
+        userPlan="Personal Trainer"
         userImage={userData?.image}
       />
       <div className="flex-1 flex flex-col overflow-hidden">
         <Header 
-          userName={userData?.name || 'Usuário'}
+          userName={userData?.name || 'Personal'}
         />
-        <main className="flex-1 overflow-x-hidden overflow-y-auto">
+        <main className="flex-1 overflow-x-hidden overflow-y-auto bg-gray-50 p-4">
           {children}
         </main>
       </div>
@@ -45,4 +45,4 @@ const MainLayout: FC<MainLayoutProps> = ({
   );
 };
 
-export default MainLayout; 
+export default PersonalLayout; 

@@ -1,110 +1,68 @@
 import { FC, useState, FormEvent } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { FiMail, FiLock, FiUser } from 'react-icons/fi';
+import { FiMail, FiLock, FiUser, FiBriefcase } from 'react-icons/fi';
 import Input from '../../components/input/Input';
 import Button from '../../components/Button/Button';
 import logo from '../../assets/logo.png';
 import Swal from 'sweetalert2';
 
-const Register: FC = () => {
+const PersonalRegister: FC = () => {
   const navigate = useNavigate();
-  const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     email: '',
     password: '',
-    confirmPassword: ''
+    confirmPassword: '',
+    cref: '',
+    specialization: ''
   });
-
-  const validateForm = () => {
-    if (!formData.name.trim()) {
-      Swal.fire('Erro!', 'O nome é obrigatório.', 'error');
-      return false;
-    }
-
-    if (!formData.email.trim()) {
-      Swal.fire('Erro!', 'O email é obrigatório.', 'error');
-      return false;
-    }
-
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(formData.email)) {
-      Swal.fire('Erro!', 'Por favor, insira um email válido.', 'error');
-      return false;
-    }
-
-    if (formData.password.length < 6) {
-      Swal.fire('Erro!', 'A senha deve ter pelo menos 6 caracteres.', 'error');
-      return false;
-    }
-
-    if (formData.password !== formData.confirmPassword) {
-      Swal.fire('Erro!', 'As senhas não coincidem.', 'error');
-      return false;
-    }
-
-    return true;
-  };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({
       ...prev,
-      [name]: value.trim()
+      [name]: value
     }));
   };
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     
-    if (!validateForm()) return;
-
-    setIsLoading(true);
+    if (formData.password !== formData.confirmPassword) {
+      Swal.fire('Erro!', 'As senhas não coincidem.', 'error');
+      return;
+    }
 
     try {
-      const response = await fetch('http://localhost:3000/cadastro', {
+      const response = await fetch('http://localhost:3000/cadastro-personal', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          name: formData.name.trim(),
-          email: formData.email.toLowerCase().trim(),
+          name: formData.name,
+          email: formData.email,
           password: formData.password,
+          cref: formData.cref,
+          specialization: formData.specialization
         }),
       });
 
-      const data = await response.json();
-
       if (!response.ok) {
-        if (response.status === 400 && data.error?.includes('já cadastrado')) {
-          throw new Error('Este email já está cadastrado. Por favor, use outro email ou faça login.');
-        }
-        throw new Error(data.error || 'Erro ao fazer cadastro');
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Erro ao fazer cadastro');
       }
 
+      const data = await response.json();
       localStorage.setItem('token', data.token);
       localStorage.setItem('userId', data.user.id);
       localStorage.setItem('userRole', data.user.role);
-
-      await Swal.fire({
-        title: 'Sucesso!',
-        text: 'Cadastro realizado com sucesso!',
-        icon: 'success',
-        timer: 2000,
-        showConfirmButton: false
-      });
-
-      navigate('/auth/profile-setup');
+      
+      Swal.fire('Sucesso!', 'Cadastro realizado com sucesso!', 'success');
+      navigate('/auth/personal-profile-setup');
     } catch (error) {
       console.error('Erro ao fazer cadastro:', error);
-      Swal.fire({
-        title: 'Erro!',
-        text: error instanceof Error ? error.message : 'Falha ao realizar cadastro. Tente novamente.',
-        icon: 'error'
-      });
-    } finally {
-      setIsLoading(false);
+      Swal.fire('Erro!', error instanceof Error ? error.message : 'Falha ao realizar cadastro. Tente novamente.', 'error');
     }
   };
 
@@ -112,20 +70,11 @@ const Register: FC = () => {
     <div className="min-h-screen bg-gray-100 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
         <h2 className="text-center text-3xl font-extrabold text-gray-900">
-          Crie sua conta
+          Cadastro de Personal Trainer
         </h2>
         <img src={logo} alt="Logo UGym" className="mx-auto my-4" />
         <p className="mt-2 text-center text-sm text-gray-600">
-          Comece sua jornada fitness com o UGym
-        </p>
-        <p className="mt-2 text-center text-sm text-gray-500">
-          É um personal trainer?{' '}
-          <Link
-            to="/auth/personal-register"
-            className="font-medium text-indigo-600 hover:text-indigo-500"
-          >
-            Cadastre-se aqui
-          </Link>
+          Junte-se à nossa plataforma de profissionais
         </p>
       </div>
 
@@ -133,7 +82,7 @@ const Register: FC = () => {
         <div className="bg-white py-8 px-4 shadow-lg sm:rounded-lg sm:px-10">
           <form className="space-y-6" onSubmit={handleSubmit}>
             <Input
-              label="Nome"
+              label="Nome Completo"
               type="text"
               name="name"
               value={formData.name}
@@ -144,13 +93,35 @@ const Register: FC = () => {
             />
 
             <Input
-              label="Email"
+              label="Email Profissional"
               type="email"
               name="email"
               value={formData.email}
               onChange={handleChange}
               icon={<FiMail size={20} />}
-              placeholder="Seu melhor email"
+              placeholder="Seu email profissional"
+              required
+            />
+
+            <Input
+              label="CREF"
+              type="text"
+              name="cref"
+              value={formData.cref}
+              onChange={handleChange}
+              icon={<FiBriefcase size={20} />}
+              placeholder="Seu número de CREF"
+              required
+            />
+
+            <Input
+              label="Especialização"
+              type="text"
+              name="specialization"
+              value={formData.specialization}
+              onChange={handleChange}
+              icon={<FiBriefcase size={20} />}
+              placeholder="Sua principal especialização"
               required
             />
 
@@ -199,9 +170,8 @@ const Register: FC = () => {
             <Button
               type="submit"
               fullWidth
-              isLoading={isLoading}
             >
-              {isLoading ? 'Criando conta...' : 'Criar Conta'}
+              Criar Conta de Personal
             </Button>
           </form>
 
@@ -220,4 +190,4 @@ const Register: FC = () => {
   );
 };
 
-export default Register; 
+export default PersonalRegister; 

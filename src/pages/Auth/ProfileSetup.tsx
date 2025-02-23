@@ -1,5 +1,5 @@
-import { FC, useState, FormEvent } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { FC, useState, FormEvent, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { FaWeight, FaRulerVertical } from 'react-icons/fa';
 import Input from '../../components/input/Input';
 import Button from '../../components/Button/Button';
@@ -14,7 +14,6 @@ interface ProfileFormData {
   weight: string;
   goal: string;
   activityLevel: string;
-  experienceLevel: string;
   medicalConditions: string;
   physicalLimitations: string;
   healthCondition: string;
@@ -23,8 +22,10 @@ interface ProfileFormData {
 
 const ProfileSetup: FC = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { setIsAuthenticated } = useAuth();
-  const { fetchUserData } = useUser();
+  const { fetchUserData, userData } = useUser();
+  const isEditing = location.pathname === '/edit-profile';
   const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState<ProfileFormData>({
     birthDate: '',
@@ -33,12 +34,38 @@ const ProfileSetup: FC = () => {
     weight: '',
     goal: '',
     activityLevel: '',
-    experienceLevel: '',
     medicalConditions: '',
     physicalLimitations: '',
     healthCondition: '',
     experience: ''
   });
+
+  useEffect(() => {
+    const loadUserData = async () => {
+      if (!isEditing || !userData?.preferences) return;
+
+      try {
+        setFormData({
+          birthDate: userData.preferences.birthDate?.split('T')[0] || '',
+          gender: userData.preferences.gender || '',
+          height: userData.preferences.height || '',
+          weight: userData.preferences.weight || '',
+          goal: userData.preferences.goal || '',
+          activityLevel: userData.preferences.activityLevel || '',
+          medicalConditions: userData.preferences.medicalConditions || '',
+          physicalLimitations: userData.preferences.physicalLimitations || '',
+          healthCondition: userData.preferences.healthCondition || '',
+          experience: userData.preferences.experience || ''
+        });
+      } catch (error) {
+        console.error('Erro ao carregar dados do usuário:', error);
+        Swal.fire('Erro!', 'Não foi possível carregar os dados do perfil', 'error');
+        navigate(-1);
+      }
+    };
+
+    loadUserData();
+  }, [isEditing, userData, navigate]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -54,7 +81,7 @@ const ProfileSetup: FC = () => {
     
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('https://backend-ugymreact.onrender.com/preferences', {
+      const response = await fetch('http://localhost:3000/preferences', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -70,7 +97,12 @@ const ProfileSetup: FC = () => {
       setIsAuthenticated(true);
       await fetchUserData();
       Swal.fire('Sucesso!', 'Preferências salvas com sucesso!', 'success');
-      navigate('/');
+      
+      if (isEditing) {
+        navigate(-1);
+      } else {
+        navigate('/');
+      }
     } catch (error) {
       console.error('Erro ao salvar perfil:', error);
       Swal.fire('Erro!', 'Falha ao salvar preferências. Tente novamente.', 'error');
@@ -84,7 +116,7 @@ const ProfileSetup: FC = () => {
       <div className="max-w-2xl mx-auto">
         <div className="text-center mb-8">
           <h2 className="text-3xl font-extrabold text-gray-900">
-            Configure seu Perfil
+            {isEditing ? 'Editar Perfil' : 'Configure seu Perfil'}
           </h2>
           <p className="mt-2 text-sm text-gray-600">
             Precisamos de algumas informações para personalizar sua experiência
@@ -148,6 +180,16 @@ const ProfileSetup: FC = () => {
                 required
               />
 
+              <Input
+                label="Objetivo"
+                type="text"
+                name="goal"
+                value={formData.goal}
+                onChange={handleChange}
+                placeholder="Ex: Perder peso, Ganhar massa muscular"
+                required
+              />
+
               <div className="w-full">
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Nível de Atividade
@@ -165,24 +207,6 @@ const ProfileSetup: FC = () => {
                   <option value="moderado">Moderadamente Ativo</option>
                   <option value="muito_ativo">Muito Ativo</option>
                   <option value="extremamente_ativo">Extremamente Ativo</option>
-                </select>
-              </div>
-
-              <div className="w-full">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Nível de Experiência
-                </label>
-                <select
-                  name="experience"
-                  value={formData.experience}
-                  onChange={handleChange}
-                  className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                  required
-                >
-                  <option value="">Selecione...</option>
-                  <option value="iniciante">Iniciante</option>
-                  <option value="intermediario">Intermediário</option>
-                  <option value="avancado">Avançado</option>
                 </select>
               </div>
 

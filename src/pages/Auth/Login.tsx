@@ -31,7 +31,7 @@ const Login: FC = () => {
     setIsLoading(true);
     
     try {
-      const response = await fetch('https://backend-ugymreact.onrender.com/login', {
+      const response = await fetch('http://localhost:3000/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -131,6 +131,15 @@ const Login: FC = () => {
             >
               Cadastre-se
             </Link>
+          </p>
+
+          <p className="mt-6 text-center text-sm text-gray-600">
+            <Link
+              to="/auth/personal-register"
+              className="font-medium text-indigo-600 hover:text-indigo-500"
+            >
+              Sou Personal Trainer
+            </Link> 
           </p>
         </div>
       </div>

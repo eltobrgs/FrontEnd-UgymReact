@@ -1,23 +1,32 @@
 import { FC } from 'react';
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, Navigate } from 'react-router-dom';
+import { UserData } from '../contexts/UserContext';
+
+// Páginas do Usuário
 import Dashboard from '../pages/Dashboard/Dashboard';
 import WorkoutPlan from '../pages/WorkoutPlan/WorkoutPlan';
 import UserProfile from '../pages/UserProfile/UserProfile';
 import Reports from '../pages/Reports/Reports';
 import DietPlan from '../pages/DietPlan/DietPlan';
+import PersonalList from '../pages/PersonalList/PersonalList';
 import Settings from '../pages/Settings/Settings';
-import { UserData } from '../contexts/UserContext';
+import ProfileSetup from '../pages/Auth/ProfileSetup';
 
-interface AppRoutesProps {
+interface UserRoutesProps {
   userData: UserData | null;
 }
 
-const AppRoutes: FC<AppRoutesProps> = ({ userData }) => {
+const UserRoutes: FC<UserRoutesProps> = ({ userData }) => {
   return (
     <Routes>
       <Route 
         path="/" 
-        element={<Dashboard userName={userData?.name || 'Usuário'} stats={userData?.stats || { steps: 0, calories: 0, progress: 0 }} />} 
+        element={
+          <Dashboard 
+            userName={userData?.name || 'Usuário'} 
+            stats={userData?.stats || { steps: 0, calories: 0, progress: 0 }} 
+          />
+        } 
       />
       <Route 
         path="/workout-plan" 
@@ -28,6 +37,10 @@ const AppRoutes: FC<AppRoutesProps> = ({ userData }) => {
         element={<UserProfile userName={userData?.name || 'Usuário'} />} 
       />
       <Route 
+        path="/edit-profile" 
+        element={<ProfileSetup />} 
+      />
+      <Route 
         path="/reports" 
         element={<Reports userName={userData?.name || 'Usuário'} />} 
       />
@@ -36,11 +49,16 @@ const AppRoutes: FC<AppRoutesProps> = ({ userData }) => {
         element={<DietPlan userName={userData?.name || 'Usuário'} />} 
       />
       <Route 
+        path="/personals" 
+        element={<PersonalList />} 
+      />
+      <Route 
         path="/settings" 
         element={<Settings userName={userData?.name || 'Usuário'} />} 
       />
+      <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );
 };
 
-export default AppRoutes; 
+export default UserRoutes; 
