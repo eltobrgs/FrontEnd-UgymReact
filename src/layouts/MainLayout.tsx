@@ -1,7 +1,7 @@
 import { FC, ReactNode } from 'react';
 import { useLocation } from 'react-router-dom';
-import Sidebar from '../components/UserSidebar/Sidebar';
-import Header from '../components/UserHeader/Header';
+import Sidebar from '../components/UserSidebar/UserSidebar';
+import Header from '../components/UserHeader/UserHeader';
 import { UserData } from '../contexts/UserContext';
 
 interface MainLayoutProps {
