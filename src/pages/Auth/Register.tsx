@@ -51,7 +51,7 @@ const Register: FC = () => {
     const { name, value } = e.target;
     setFormData(prev => ({
       ...prev,
-      [name]: value.trim()
+      [name]: value
     }));
   };
 
