@@ -9,6 +9,7 @@ import { connectionUrl } from '../../config/api';
 
 const PersonalRegister: FC = () => {
   const navigate = useNavigate();
+  const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -33,6 +34,8 @@ const PersonalRegister: FC = () => {
       Swal.fire('Erro!', 'As senhas não coincidem.', 'error');
       return;
     }
+
+    setIsLoading(true);
 
     try {
       const response = await fetch(`${connectionUrl}/cadastro-personal`, {
@@ -64,6 +67,8 @@ const PersonalRegister: FC = () => {
     } catch (error) {
       console.error('Erro ao fazer cadastro:', error);
       Swal.fire('Erro!', error instanceof Error ? error.message : 'Falha ao realizar cadastro. Tente novamente.', 'error');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -171,6 +176,7 @@ const PersonalRegister: FC = () => {
             <Button
               type="submit"
               fullWidth
+              isLoading={isLoading}
             >
               Criar Conta de Personal
             </Button>

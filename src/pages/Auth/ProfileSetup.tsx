@@ -97,7 +97,13 @@ const ProfileSetup: FC = () => {
 
       setIsAuthenticated(true);
       await fetchUserData();
-      Swal.fire('Sucesso!', 'Preferências salvas com sucesso!', 'success');
+      await Swal.fire({
+        title: 'Sucesso!',
+        text: 'Preferências salvas com sucesso!',
+        icon: 'success',
+        timer: 2000,
+        showConfirmButton: false
+      });
       
       if (isEditing) {
         navigate(-1);

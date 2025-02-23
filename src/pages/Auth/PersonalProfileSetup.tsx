@@ -3,6 +3,8 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { FaBriefcase } from 'react-icons/fa';
 import Input from '../../components/input/Input';
 import Button from '../../components/Button/Button';
+import { useAuth } from '../../contexts/AuthContext';
+import { useUser } from '../../contexts/UserContext';
 import Swal from 'sweetalert2';
 import { connectionUrl } from '../../config/api';
 
@@ -27,7 +29,10 @@ interface PersonalProfileFormData {
 const PersonalProfileSetup: FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { setIsAuthenticated } = useAuth();
+  const { fetchUserData } = useUser();
   const isEditing = location.pathname === '/edit-personal-profile';
+  const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState<PersonalProfileFormData>({
     birthDate: '',
     gender: '',
@@ -117,6 +122,7 @@ const PersonalProfileSetup: FC = () => {
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
+    setIsLoading(true);
 
     try {
       const token = localStorage.getItem('token');
@@ -143,19 +149,27 @@ const PersonalProfileSetup: FC = () => {
         throw new Error(errorData.error || 'Erro ao salvar preferências');
       }
 
-      await response.json();
-      Swal.fire('Sucesso!', 'Perfil configurado com sucesso!', 'success');
+      setIsAuthenticated(true);
+      await fetchUserData();
       
-      const userId = localStorage.getItem('userId');
+      await Swal.fire({
+        title: 'Sucesso!',
+        text: 'Perfil configurado com sucesso!',
+        icon: 'success',
+        timer: 2000,
+        showConfirmButton: false
+      });
       
       if (isEditing) {
         navigate(-1);
       } else {
-        navigate(`/personal/${userId}`);
+        navigate('/');
       }
     } catch (error) {
       console.error('Erro ao salvar perfil:', error);
       Swal.fire('Erro!', error instanceof Error ? error.message : 'Falha ao salvar perfil. Tente novamente.', 'error');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -337,6 +351,7 @@ const PersonalProfileSetup: FC = () => {
               </Button>
               <Button
                 type="submit"
+                isLoading={isLoading}
               >
                 {isEditing ? 'Salvar Alterações' : 'Concluir Cadastro'}
               </Button>

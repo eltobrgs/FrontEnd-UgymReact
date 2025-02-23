@@ -119,15 +119,7 @@ const Register: FC = () => {
         <p className="mt-2 text-center text-sm text-gray-600">
           Comece sua jornada fitness com o UGym
         </p>
-        <p className="mt-2 text-center text-sm text-gray-500">
-          É um personal trainer?{' '}
-          <Link
-            to="/auth/personal-register"
-            className="font-medium text-indigo-600 hover:text-indigo-500"
-          >
-            Cadastre-se aqui
-          </Link>
-        </p>
+        
       </div>
 
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
@@ -215,6 +207,15 @@ const Register: FC = () => {
               Faça login
             </Link>
           </p>
+          <p className="mt-2 text-center text-sm text-gray-500">
+          É um personal trainer?{' '}
+          <Link
+            to="/auth/personal-register"
+            className="font-medium text-indigo-600 hover:text-indigo-500"
+          >
+            Cadastre-se aqui
+          </Link>
+        </p>
         </div>
       </div>
     </div>
