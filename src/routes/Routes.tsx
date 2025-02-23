@@ -14,23 +14,40 @@ import PersonalProfileSetup from '../pages/Auth/PersonalProfileSetup';
 import UserRoutes from './UserRoutes';
 import PersonalRoutes from './PersonalRoutes';
 
+// Componente de Loading
+const LoadingScreen = () => (
+  <div className="min-h-screen flex flex-col items-center justify-center bg-gray-100">
+    <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-red-600 mb-4"></div>
+    <p className="text-xl text-gray-700 font-semibold">Verificando suas credenciais...</p>
+    <p className="text-gray-500 mt-2">Por favor, aguarde um momento.</p>
+  </div>
+);
+
 interface AppRoutesProps {
   userData: UserData | null;
 }
 
 const AppRoutes: FC<AppRoutesProps> = ({ userData }) => {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, isLoading } = useAuth();
   const isPersonal = userData?.role === 'PERSONAL';
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoadingRole, setIsLoadingRole] = useState(true);
 
   useEffect(() => {
     // Simula um pequeno delay para evitar flash de conteúdo
-    const timer = setTimeout(() => {
-      setIsLoading(false);
-    }, 500);
+    if (userData) {
+      const timer = setTimeout(() => {
+        setIsLoadingRole(false);
+      }, 500);
 
-    return () => clearTimeout(timer);
+      return () => clearTimeout(timer);
+    } else {
+      setIsLoadingRole(false);
+    }
   }, [userData]);
+
+  if (isLoading) {
+    return <LoadingScreen />;
+  }
 
   if (!isAuthenticated) {
     return (
@@ -50,12 +67,8 @@ const AppRoutes: FC<AppRoutesProps> = ({ userData }) => {
     return <Navigate to="/" replace />;
   }
 
-  if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-100">
-        <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-red-600"></div>
-      </div>
-    );
+  if (isLoadingRole) {
+    return <LoadingScreen />;
   }
 
   // Retorna as rotas específicas baseadas no tipo de usuário

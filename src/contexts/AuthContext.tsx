@@ -3,6 +3,7 @@ import { connectionUrl } from '../config/api';
 
 interface AuthContextType {
   isAuthenticated: boolean;
+  isLoading: boolean;
   setIsAuthenticated: (value: boolean) => void;
   logout: () => void;
 }
@@ -11,6 +12,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   const logout = () => {
     localStorage.removeItem('token');
@@ -20,6 +22,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     const token = localStorage.getItem('token');
     if (token) {
+      setIsLoading(true);
       // Verifica se o token é válido fazendo uma requisição ao backend
       fetch(`${connectionUrl}/me`, {
         headers: {
@@ -38,12 +41,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         .catch(() => {
           localStorage.removeItem('token');
           setIsAuthenticated(false);
+        })
+        .finally(() => {
+          setIsLoading(false);
         });
+    } else {
+      setIsLoading(false);
     }
   }, []);
 
   return (
-    <AuthContext.Provider value={{ isAuthenticated, setIsAuthenticated, logout }}>
+    <AuthContext.Provider value={{ isAuthenticated, isLoading, setIsAuthenticated, logout }}>
       {children}
     </AuthContext.Provider>
   );

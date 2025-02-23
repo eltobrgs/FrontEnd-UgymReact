@@ -10,6 +10,13 @@ interface HeaderProps {
 const Header: FC<HeaderProps> = ({ userName }) => {
   const navigate = useNavigate();
 
+  // Componente de loading para o nome do usuário
+  const LoadingName = () => (
+    <div className="animate-pulse flex space-x-4">
+      <div className="h-4 w-32 bg-gray-300 rounded"></div>
+    </div>
+  );
+
   const handleAddStudent = () => {
     Swal.fire({
       title: 'Adicionar Novo Aluno',
@@ -58,7 +65,9 @@ const Header: FC<HeaderProps> = ({ userName }) => {
     <header className="bg-white shadow-sm">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
         <div className="flex-1 flex justify-center">
-          <span className="text-gray-700">Bem-vindo, {userName}</span>
+          <span className="text-gray-700">
+            Bem-vindo, {userName ? userName : <LoadingName />}
+          </span>
         </div>
         <div className="flex items-center space-x-4">
           <button
