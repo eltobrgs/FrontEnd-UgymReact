@@ -68,7 +68,7 @@ const UserProfile: FC<UserProfileProps> = () => {
             </div>
             <div className="flex items-center space-x-3 text-gray-600">
               <FaBirthdayCake className="text-red-600" />
-              <span>{userData?.preferences?.birthDate ? new Date(userData.preferences.birthDate).toLocaleDateString() : 'Data não cadastrada'}</span>
+              <span>{userData?.preferences?.birthDate ? userData.preferences.birthDate.split('T')[0] : 'Data não cadastrada'}</span>
             </div>
             <div className="flex items-center space-x-3 text-gray-600">
               <FaVenusMars className="text-red-600" />
