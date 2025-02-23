@@ -1,0 +1,1 @@
+export const connectionUrl = 'https://backend-ugymreact.onrender.com'; 

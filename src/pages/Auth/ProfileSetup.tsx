@@ -6,6 +6,7 @@ import Button from '../../components/Button/Button';
 import { useAuth } from '../../contexts/AuthContext';
 import { useUser } from '../../contexts/UserContext';
 import Swal from 'sweetalert2';
+import { connectionUrl } from '../../config/api';
 
 interface ProfileFormData {
   birthDate: string;
@@ -81,7 +82,7 @@ const ProfileSetup: FC = () => {
     
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:3000/preferences', {
+      const response = await fetch(`${connectionUrl}/preferences`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

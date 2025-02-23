@@ -29,7 +29,7 @@ const Header: FC<HeaderProps> = ({ userName }) => {
         
         try {
           const token = localStorage.getItem('token');
-          const response = await fetch('http://localhost:3000/add-student', {
+          const response = await fetch('https://backend-ugymreact.onrender.com/add-student', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',

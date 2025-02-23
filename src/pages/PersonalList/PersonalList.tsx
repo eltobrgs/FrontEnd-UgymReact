@@ -23,7 +23,7 @@ const PersonalList: FC = () => {
   useEffect(() => {
     const fetchPersonals = async () => {
       try {
-        const response = await fetch('http://localhost:3000/personals');
+        const response = await fetch('https://backend-ugymreact.onrender.com/personals');
         
         if (!response.ok) {
           throw new Error('Erro ao buscar lista de personais');

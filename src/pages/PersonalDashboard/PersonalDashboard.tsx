@@ -1,6 +1,7 @@
 import { FC, useEffect, useState } from 'react';
 import { FaUsers, FaChartLine, FaCalendarCheck, FaMoneyBillWave } from 'react-icons/fa';
 import StudentCard from '../../components/StudentCard/StudentCard';
+import { connectionUrl } from '../../config/api';
 
 interface Student {
   id: number;
@@ -21,7 +22,7 @@ const PersonalDashboard: FC = () => {
     const fetchStudents = async () => {
       try {
         const token = localStorage.getItem('token');
-        const response = await fetch('http://localhost:3000/students', {
+        const response = await fetch(`${connectionUrl}/students`, {
           headers: {
             'Authorization': `Bearer ${token}`
           }

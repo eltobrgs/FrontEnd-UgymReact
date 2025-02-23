@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, ReactNode, useEffect } from 'react';
+import { connectionUrl } from '../config/api';
 
 interface Stats {
   steps: number;
@@ -56,7 +57,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
       const token = localStorage.getItem('token');
       if (!token) return;
 
-      const userResponse = await fetch('http://localhost:3000/me', {
+      const userResponse = await fetch(`${connectionUrl}/me`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -66,7 +67,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
 
       const userData = await userResponse.json();
 
-      const preferencesResponse = await fetch('http://localhost:3000/preferences', {
+      const preferencesResponse = await fetch(`${connectionUrl}/preferences`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },

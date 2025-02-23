@@ -17,6 +17,7 @@ import {
 import Button from '../../components/Button/Button';
 import Swal from 'sweetalert2';
 import { useUser } from '../../contexts/UserContext';
+import { connectionUrl } from '../../config/api';
 
 interface PersonalData {
   user: {
@@ -59,7 +60,7 @@ const PersonalProfile: FC = () => {
           throw new Error('Usuário não autenticado');
         }
 
-        const response = await fetch(`http://localhost:3000/personal/${profileId}`, {
+        const response = await fetch(`${connectionUrl}/personal/${profileId}`, {
           headers: {
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json'

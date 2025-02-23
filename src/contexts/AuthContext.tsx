@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, ReactNode, useEffect } from 'react';
+import { connectionUrl } from '../config/api';
 
 interface AuthContextType {
   isAuthenticated: boolean;
@@ -20,7 +21,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const token = localStorage.getItem('token');
     if (token) {
       // Verifica se o token é válido fazendo uma requisição ao backend
-      fetch('http://localhost:3000/me', {
+      fetch(`${connectionUrl}/me`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },

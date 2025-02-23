@@ -5,6 +5,7 @@ import Input from '../../components/input/Input';
 import Button from '../../components/Button/Button';
 import logo from '../../assets/logo.png';
 import Swal from 'sweetalert2';
+import { connectionUrl } from '../../config/api';
 
 const Register: FC = () => {
   const navigate = useNavigate();
@@ -62,7 +63,7 @@ const Register: FC = () => {
     setIsLoading(true);
 
     try {
-      const response = await fetch('http://localhost:3000/cadastro', {
+      const response = await fetch(`${connectionUrl}/cadastro`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

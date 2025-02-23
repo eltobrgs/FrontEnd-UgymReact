@@ -7,6 +7,7 @@ import logo from '../../assets/logo.png';
 import { useAuth } from '../../contexts/AuthContext';
 import { useUser } from '../../contexts/UserContext';
 import Swal from 'sweetalert2';
+import { connectionUrl } from '../../config/api';
 
 const Login: FC = () => {
   const navigate = useNavigate();
@@ -31,7 +32,7 @@ const Login: FC = () => {
     setIsLoading(true);
     
     try {
-      const response = await fetch('http://localhost:3000/login', {
+      const response = await fetch(`${connectionUrl}/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

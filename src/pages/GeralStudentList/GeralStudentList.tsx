@@ -2,6 +2,7 @@ import { FC, useState, useEffect } from 'react';
 import { FaSearch } from 'react-icons/fa';
 import StudentCard from '../../components/StudentCard/StudentCard';
 import Swal from 'sweetalert2';
+import { connectionUrl } from '../../config/api';
 
 interface Student {
   id: number;
@@ -23,7 +24,7 @@ const StudentList: FC = () => {
   useEffect(() => {
     const fetchStudents = async () => {
       try {
-        const response = await fetch('http://localhost:3000/all-students', {
+        const response = await fetch(`${connectionUrl}/all-students`, {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json'

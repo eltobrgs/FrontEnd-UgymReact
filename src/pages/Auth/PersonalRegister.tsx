@@ -5,6 +5,7 @@ import Input from '../../components/input/Input';
 import Button from '../../components/Button/Button';
 import logo from '../../assets/logo.png';
 import Swal from 'sweetalert2';
+import { connectionUrl } from '../../config/api';
 
 const PersonalRegister: FC = () => {
   const navigate = useNavigate();
@@ -34,7 +35,7 @@ const PersonalRegister: FC = () => {
     }
 
     try {
-      const response = await fetch('http://localhost:3000/cadastro-personal', {
+      const response = await fetch(`${connectionUrl}/cadastro-personal`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

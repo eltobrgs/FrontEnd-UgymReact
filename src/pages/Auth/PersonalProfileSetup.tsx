@@ -4,6 +4,7 @@ import { FaBriefcase } from 'react-icons/fa';
 import Input from '../../components/input/Input';
 import Button from '../../components/Button/Button';
 import Swal from 'sweetalert2';
+import { connectionUrl } from '../../config/api';
 
 
 interface PersonalProfileFormData {
@@ -56,7 +57,7 @@ const PersonalProfileSetup: FC = () => {
           throw new Error('Dados de autenticação não encontrados');
         }
 
-        const response = await fetch(`http://localhost:3000/personal/${userId}`, {
+        const response = await fetch(`${connectionUrl}/personal/${userId}`, {
           headers: {
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json'
@@ -123,7 +124,7 @@ const PersonalProfileSetup: FC = () => {
         throw new Error('Token não encontrado');
       }
 
-      const response = await fetch('http://localhost:3000/personal-preferences', {
+      const response = await fetch(`${connectionUrl}/personal-preferences`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
