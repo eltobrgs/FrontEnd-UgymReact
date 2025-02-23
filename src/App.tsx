@@ -6,20 +6,53 @@ import AppRoutes from './routes/Routes';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { UserProvider, useUser } from './contexts/UserContext';
 
+// Componente de Loading
+const LoadingScreen = () => (
+  <div className="min-h-screen flex flex-col items-center justify-center bg-gray-100">
+    <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-red-600 mb-4"></div>
+    <p className="text-xl text-gray-700 font-semibold">Carregando sua interface...</p>
+    <p className="text-gray-500 mt-2">Por favor, aguarde um momento.</p>
+  </div>
+);
+
 const AppContent = () => {
-  const authContext = useAuth();
+  const { isAuthenticated, isLoading: authLoading } = useAuth();
   const { userData, setUserData } = useUser();
-  const isAuthenticated = authContext?.isAuthenticated ?? false;
+  const [isLayoutLoading, setIsLayoutLoading] = useState(true);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   useEffect(() => {
     if (!isAuthenticated) {
       setUserData(null);
+      setIsLayoutLoading(false);
+      return;
     }
-  }, [isAuthenticated, setUserData]);
 
-  const isPersonal = userData?.role === 'PERSONAL';
-  const Layout = isPersonal ? PersonalLayout : MainLayout;
+    // Se temos userData, podemos mostrar o layout
+    if (userData) {
+      const timer = setTimeout(() => {
+        setIsLayoutLoading(false);
+      }, 100);
+      return () => clearTimeout(timer);
+    }
+  }, [isAuthenticated, userData, setUserData]);
+
+  // Mostra loading enquanto verifica autenticação
+  if (authLoading) {
+    return <LoadingScreen />;
+  }
+
+  // Se não está autenticado, mostra as rotas de auth
+  if (!isAuthenticated) {
+    return <AppRoutes userData={null} />;
+  }
+
+  // Mostra loading enquanto carrega os dados do usuário
+  if (isLayoutLoading || !userData) {
+    return <LoadingScreen />;
+  }
+
+  const Layout = userData.role === 'PERSONAL' ? PersonalLayout : MainLayout;
 
   return (
     <Layout
@@ -32,16 +65,16 @@ const AppContent = () => {
   );
 };
 
-function App() {
+const App = () => {
   return (
-    <AuthProvider>
-      <UserProvider>
-        <Router>
+    <Router>
+      <AuthProvider>
+        <UserProvider>
           <AppContent />
-        </Router>
-      </UserProvider>
-    </AuthProvider>
+        </UserProvider>
+      </AuthProvider>
+    </Router>
   );
-}
+};
 
 export default App;
