@@ -1,15 +1,16 @@
 import { FC, useState, FormEvent } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
 import { FiMail, FiLock, FiUser, FiBriefcase } from 'react-icons/fi';
 import Input from '../../components/input/Input';
 import Button from '../../components/Button/Button';
+import PersonalProfileSetup from './PersonalProfileSetup';
 import logo from '../../assets/logo.png';
 import Swal from 'sweetalert2';
 import { connectionUrl } from '../../config/api';
 
 const PersonalRegister: FC = () => {
-  const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
+  const [showProfileSetup, setShowProfileSetup] = useState(false);
+  const [userId, setUserId] = useState('');
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -62,8 +63,8 @@ const PersonalRegister: FC = () => {
       localStorage.setItem('userId', data.user.id);
       localStorage.setItem('userRole', data.user.role);
       
-      Swal.fire('Sucesso!', 'Cadastro realizado com sucesso!', 'success');
-      navigate('/auth/personal-profile-setup');
+      setUserId(data.user.id);
+      setShowProfileSetup(true);
     } catch (error) {
       console.error('Erro ao fazer cadastro:', error);
       Swal.fire('Erro!', error instanceof Error ? error.message : 'Falha ao realizar cadastro. Tente novamente.', 'error');
@@ -72,128 +73,128 @@ const PersonalRegister: FC = () => {
     }
   };
 
+  const handleProfileSetupSuccess = () => {
+    setShowProfileSetup(false);
+  };
+
   return (
-    <div className="min-h-screen bg-gray-100 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
-      <div className="sm:mx-auto sm:w-full sm:max-w-md">
-        <h2 className="text-center text-3xl font-extrabold text-gray-900">
-          Cadastro de Personal Trainer
-        </h2>
-        <img src={logo} alt="Logo UGym" className="mx-auto my-4" />
-        <p className="mt-2 text-center text-sm text-gray-600">
-          Junte-se à nossa plataforma de profissionais
-        </p>
-      </div>
+    <>
+      <div className="min-h-screen bg-gray-100 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+        <div className="sm:mx-auto sm:w-full sm:max-w-md">
+          <h4 className="text-center text-3xl font-extrabold text-gray-900">
+            Cadastro de Personal Trainer
+          </h4>
+          <img src={logo} alt="Logo UGym" className="mx-auto my-4" />
+        </div>
 
-      <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-        <div className="bg-white py-8 px-4 shadow-lg sm:rounded-lg sm:px-10">
-          <form className="space-y-6" onSubmit={handleSubmit}>
-            <Input
-              label="Nome Completo"
-              type="text"
-              name="name"
-              value={formData.name}
-              onChange={handleChange}
-              icon={<FiUser size={20} />}
-              placeholder="Seu nome completo"
-              required
-            />
-
-            <Input
-              label="Email Profissional"
-              type="email"
-              name="email"
-              value={formData.email}
-              onChange={handleChange}
-              icon={<FiMail size={20} />}
-              placeholder="Seu email profissional"
-              required
-            />
-
-            <Input
-              label="CREF"
-              type="text"
-              name="cref"
-              value={formData.cref}
-              onChange={handleChange}
-              icon={<FiBriefcase size={20} />}
-              placeholder="Seu número de CREF"
-              required
-            />
-
-            <Input
-              label="Especialização"
-              type="text"
-              name="specialization"
-              value={formData.specialization}
-              onChange={handleChange}
-              icon={<FiBriefcase size={20} />}
-              placeholder="Sua principal especialização"
-              required
-            />
-
-            <Input
-              label="Senha"
-              type="password"
-              name="password"
-              value={formData.password}
-              onChange={handleChange}
-              icon={<FiLock size={20} />}
-              placeholder="Crie uma senha forte"
-              required
-            />
-
-            <Input
-              label="Confirmar Senha"
-              type="password"
-              name="confirmPassword"
-              value={formData.confirmPassword}
-              onChange={handleChange}
-              icon={<FiLock size={20} />}
-              placeholder="Confirme sua senha"
-              required
-            />
-
-            <div className="flex items-center">
-              <input
-                id="terms"
-                name="terms"
-                type="checkbox"
-                className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
+        <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
+          <div className="bg-white py-8 px-4 shadow-lg sm:rounded-lg sm:px-10">
+            <form className="space-y-6" onSubmit={handleSubmit}>
+              <Input
+                label="Nome Completo"
+                type="text"
+                name="name"
+                value={formData.name}
+                onChange={handleChange}
+                icon={<FiUser size={20} />}
+                placeholder="Seu nome completo"
                 required
               />
-              <label htmlFor="terms" className="ml-2 block text-sm text-gray-900">
-                Eu concordo com os{' '}
-                <a href="#" className="text-indigo-600 hover:text-indigo-500">
-                  Termos de Serviço
-                </a>
-                {' '}e{' '}
-                <a href="#" className="text-indigo-600 hover:text-indigo-500">
-                  Política de Privacidade
-                </a>
-              </label>
-            </div>
 
-            <Button
-              type="submit"
-              fullWidth
-              isLoading={isLoading}
-            >
-              Criar Conta de Personal
-            </Button>
-          </form>
+              <Input
+                label="Email Profissional"
+                type="email"
+                name="email"
+                value={formData.email}
+                onChange={handleChange}
+                icon={<FiMail size={20} />}
+                placeholder="Seu email profissional"
+                required
+              />
 
-          <p className="mt-6 text-center text-sm text-gray-600">
-            Já tem uma conta?{' '}
-            <Link
-              to="/auth/login"
-              className="font-medium text-indigo-600 hover:text-indigo-500"
-            >
-              Faça login
-            </Link>
-          </p>
+              <Input
+                label="CREF"
+                type="text"
+                name="cref"
+                value={formData.cref}
+                onChange={handleChange}
+                icon={<FiBriefcase size={20} />}
+                placeholder="Seu número de CREF"
+                required
+              />
+
+              <Input
+                label="Especialização"
+                type="text"
+                name="specialization"
+                value={formData.specialization}
+                onChange={handleChange}
+                icon={<FiBriefcase size={20} />}
+                placeholder="Sua principal especialização"
+                required
+              />
+
+              <Input
+                label="Senha"
+                type="password"
+                name="password"
+                value={formData.password}
+                onChange={handleChange}
+                icon={<FiLock size={20} />}
+                placeholder="Crie uma senha forte"
+                required
+              />
+
+              <Input
+                label="Confirmar Senha"
+                type="password"
+                name="confirmPassword"
+                value={formData.confirmPassword}
+                onChange={handleChange}
+                icon={<FiLock size={20} />}
+                placeholder="Confirme sua senha"
+                required
+              />
+
+              <div className="flex items-center">
+                <input
+                  id="terms"
+                  name="terms"
+                  type="checkbox"
+                  className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
+                  required
+                />
+                <label htmlFor="terms" className="ml-2 block text-sm text-gray-900">
+                  Eu concordo com os{' '}
+                  <a href="#" className="text-indigo-600 hover:text-indigo-500">
+                    Termos de Serviço
+                  </a>
+                  {' '}e{' '}
+                  <a href="#" className="text-indigo-600 hover:text-indigo-500">
+                    Política de Privacidade
+                  </a>
+                </label>
+              </div>
+
+              <Button
+                type="submit"
+                fullWidth
+                isLoading={isLoading}
+              >
+                Criar Conta de Personal
+              </Button>
+            </form>
+          </div>
         </div>
       </div>
-    </div>
+
+      <PersonalProfileSetup
+        isOpen={showProfileSetup}
+        onClose={() => setShowProfileSetup(false)}
+        onSuccess={handleProfileSetupSuccess}
+        userId={userId}
+      />
+    </>
   );
 };
 

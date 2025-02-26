@@ -2,6 +2,7 @@ import { FC, useState, useEffect } from 'react';
 import { FaSearch } from 'react-icons/fa';
 import PersonalCard from '../../components/PersonalCard/PersonalCard';
 import Swal from 'sweetalert2';
+import { connectionUrl } from '../../config/api';
 
 interface Personal {
   id: number;
@@ -23,18 +24,35 @@ const PersonalList: FC = () => {
   useEffect(() => {
     const fetchPersonals = async () => {
       try {
-        const response = await fetch('https://backend-ugymreact.onrender.com/personals');
+        const response = await fetch(`${connectionUrl}/personals`);
         
         if (!response.ok) {
           throw new Error('Erro ao buscar lista de personais');
         }
 
         const data = await response.json();
-        setPersonals(data);
-        setFilteredPersonals(data);
+        console.log('Dados recebidos:', data); // Log para depuração
+        
+        // Transformar os dados para garantir que eles correspondam à interface
+        const formattedData = data.map((item: { id: number; name: string; specializations: string[]; yearsOfExperience: string; workLocation: string; pricePerHour: string; }) => ({
+          id: item.id,
+          user: {
+            name: item.name || 'Nome não disponível'
+          },
+          specializations: Array.isArray(item.specializations) ? item.specializations : [],
+          yearsOfExperience: item.yearsOfExperience || '0',
+          workLocation: item.workLocation || 'Não informado',
+          pricePerHour: item.pricePerHour || '0'
+        }));
+        
+        setPersonals(formattedData);
+        setFilteredPersonals(formattedData);
       } catch (error) {
         console.error('Erro ao buscar personais:', error);
         Swal.fire('Erro!', 'Não foi possível carregar a lista de personais', 'error');
+        // Em caso de erro, definir array vazio para evitar erros de renderização
+        setPersonals([]);
+        setFilteredPersonals([]);
       } finally {
         setIsLoading(false);
       }

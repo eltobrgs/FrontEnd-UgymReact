@@ -124,24 +124,16 @@ const Login: FC = () => {
             </Button>
           </form>
 
-          <p className="mt-6 text-center text-sm text-gray-600">
-            Não tem uma conta?{' '}
-            <Link
-              to="/auth/register"
-              className="font-medium text-indigo-600 hover:text-indigo-500"
-            >
-              Cadastre-se
-            </Link>
-          </p>
 
-          <p className="mt-6 text-center text-sm text-gray-600">
+
+          <div className="mt-2 text-center">
             <Link
-              to="/auth/personal-register"
-              className="font-medium text-indigo-600 hover:text-indigo-500"
+              to="/auth/academia-register"
+              className="inline-block text-sm text-indigo-600 hover:text-indigo-500 font-medium"
             >
-              Sou Personal Trainer
-            </Link> 
-          </p>
+              Cadastrar nova conta como Academia
+            </Link>
+          </div>
         </div>
       </div>
     </div>

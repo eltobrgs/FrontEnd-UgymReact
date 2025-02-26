@@ -3,7 +3,7 @@ import { FC } from 'react';
 interface StudentCardProps {
   id: number;
   name: string;
-  age: number;
+  age: number | string;
   weight: string;
   height: string;
   goal: string;

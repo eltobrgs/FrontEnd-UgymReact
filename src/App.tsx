@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { BrowserRouter as Router } from 'react-router-dom';
 import MainLayout from './layouts/MainLayout';
 import PersonalLayout from './layouts/PersonalLayout';
+import AcademiaLayout from './layouts/AcademiaLayout';
 import AppRoutes from './routes/Routes';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { UserProvider, useUser } from './contexts/UserContext';
@@ -52,7 +53,17 @@ const AppContent = () => {
     return <LoadingScreen />;
   }
 
-  const Layout = userData.role === 'PERSONAL' ? PersonalLayout : MainLayout;
+  let Layout;
+  switch (userData.role) {
+    case 'PERSONAL':
+      Layout = PersonalLayout;
+      break;
+    case 'ACADEMIA':
+      Layout = AcademiaLayout;
+      break;
+    default:
+      Layout = MainLayout;
+  }
 
   return (
     <Layout

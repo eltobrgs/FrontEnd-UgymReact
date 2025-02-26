@@ -5,14 +5,17 @@ import { UserData } from '../contexts/UserContext';
 
 // Páginas de Autenticação
 import Login from '../pages/Auth/Login';
-import Register from '../pages/Auth/Register';
-import ProfileSetup from '../pages/Auth/ProfileSetup';
-import PersonalRegister from '../pages/Auth/PersonalRegister';
-import PersonalProfileSetup from '../pages/Auth/PersonalProfileSetup';
+// import Register from '../pages/Auth/Register';
+// import ProfileSetup from '../pages/Auth/ProfileSetup';
+// import PersonalRegister from '../pages/Auth/PersonalRegister';
+// import PersonalProfileSetup from '../pages/Auth/PersonalProfileSetup';
+import AcademiaRegister from '../pages/Auth/AcademiaRegister';
+import AcademiaProfileSetup from '../pages/Auth/AcademiaProfileSetup';
 
 // Rotas específicas
 import UserRoutes from './UserRoutes';
 import PersonalRoutes from './PersonalRoutes';
+import AcademiaRoutes from './AcademiaRoutes';
 
 interface AppRoutesProps {
   userData: UserData | null;
@@ -21,31 +24,34 @@ interface AppRoutesProps {
 const AppRoutes: FC<AppRoutesProps> = ({ userData }) => {
   const { isAuthenticated } = useAuth();
   const isPersonal = userData?.role === 'PERSONAL';
+  const isAcademia = userData?.role === 'ACADEMIA';
 
   if (!isAuthenticated) {
     return (
       <Routes>
         <Route path="/auth/login" element={<Login />} />
-        <Route path="/auth/register" element={<Register />} />
-        <Route path="/auth/profile-setup" element={<ProfileSetup />} />
-        <Route path="/auth/personal-register" element={<PersonalRegister />} />
-        <Route path="/auth/personal-profile-setup" element={<PersonalProfileSetup />} />
+        <Route path="/auth/academia-register" element={<AcademiaRegister />} />
+        <Route path="/auth/academia-profile-setup" element={<AcademiaProfileSetup />} />
         <Route path="*" element={<Navigate to="/auth/login" replace />} />
       </Routes>
     );
   }
 
   // Redireciona para a página inicial apropriada se tentar acessar rotas de autenticação
-  if (window.location.pathname.startsWith('/auth')) {
+  // exceto para as rotas de setup de perfil
+  if (window.location.pathname.startsWith('/auth') && 
+      !window.location.pathname.includes('profile-setup')) {
     return <Navigate to="/" replace />;
   }
 
   // Retorna as rotas específicas baseadas no tipo de usuário
-  return isPersonal ? (
-    <PersonalRoutes userData={userData} />
-  ) : (
-    <UserRoutes userData={userData} />
-  );
+  if (isPersonal) {
+    return <PersonalRoutes userData={userData} />;
+  } else if (isAcademia) {
+    return <AcademiaRoutes userData={userData} />;
+  } else {
+    return <UserRoutes userData={userData} />;
+  }
 };
 
 export default AppRoutes; 

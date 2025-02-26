@@ -2,9 +2,14 @@ import { FC } from 'react';
 import { FaCog, FaUser, FaBell, FaPlus } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
 import Swal from 'sweetalert2';
+import { connectionUrl } from '../../config/api';
 
 interface HeaderProps {
   userName: string;
+}
+
+interface ApiError {
+  message: string;
 }
 
 const Header: FC<HeaderProps> = ({ userName }) => {
@@ -36,27 +41,32 @@ const Header: FC<HeaderProps> = ({ userName }) => {
         
         try {
           const token = localStorage.getItem('token');
-          const response = await fetch('https://backend-ugymreact.onrender.com/add-student', {
+          const response = await fetch(`${connectionUrl}/add-student/${studentCode}`, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
               'Authorization': `Bearer ${token}`
-            },
-            body: JSON.stringify({ studentCode })
+            }
           });
 
           if (!response.ok) {
-            throw new Error('Erro ao adicionar aluno');
+            const errorData = await response.json();
+            throw new Error(errorData.error || 'Erro ao adicionar aluno');
           }
 
           return response.json();
         } catch (error) {
-          Swal.showValidationMessage(`Erro: ${error}`);
+          const apiError = error as ApiError;
+          Swal.showValidationMessage(`Erro: ${apiError.message}`);
         }
       }
     }).then((result) => {
       if (result.isConfirmed) {
-        Swal.fire('Sucesso!', 'Aluno adicionado com sucesso', 'success');
+        Swal.fire('Sucesso!', 'Aluno adicionado com sucesso', 'success')
+          .then(() => {
+            // Recarregar a página ou atualizar a lista de alunos
+            window.location.reload();
+          });
       }
     });
   };

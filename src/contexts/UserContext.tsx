@@ -7,7 +7,8 @@ interface Stats {
   progress: number;
 }
 
-interface Preferences {
+interface PreferenciasAluno {
+  id: number;
   birthDate: string;
   gender: string;
   goal: string;
@@ -18,15 +19,57 @@ interface Preferences {
   activityLevel: string;
   medicalConditions: string;
   physicalLimitations: string;
-  imc: number;
+  userId: number;
+  personalId?: number;
+  imc?: number; // Opcional pois é calculado
+}
+
+interface PreferenciasPersonal {
+  id: number;
+  cref: string;
+  specialization: string;
+  birthDate: string;
+  gender: string;
+  specializations: string[];
+  yearsOfExperience: string;
+  workSchedule: string;
+  certifications: string[];
+  biography: string;
+  workLocation: string;
+  pricePerHour: string;
+  languages: string[];
+  instagram?: string;
+  linkedin?: string;
+  userId: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+interface Academia {
+  id: number;
+  cnpj: string;
+  endereco: string;
+  telefone: string;
+  horarioFuncionamento: string;
+  descricao: string;
+  comodidades: string[];
+  planos: string[];
+  website?: string;
+  instagram?: string;
+  facebook?: string;
+  userId: number;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface UserData {
   id: number;
   name: string;
   email: string;
-  role: 'USUARIO_COMUM' | 'PERSONAL';
-  preferences?: Preferences;
+  role: 'ALUNO' | 'PERSONAL' | 'ACADEMIA';
+  preferenciasAluno?: PreferenciasAluno;
+  preferenciasPersonal?: PreferenciasPersonal;
+  academia?: Academia;
   plan?: string;
   image?: string;
   stats?: Stats;
@@ -55,47 +98,101 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
   const fetchUserData = async () => {
     try {
       const token = localStorage.getItem('token');
-      if (!token) return;
+      if (!token) {
+        setUserData(null);
+        return;
+      }
 
+      // Buscar dados do usuário
       const userResponse = await fetch(`${connectionUrl}/me`, {
         headers: {
-          Authorization: `Bearer ${token}`,
-        },
+          'Authorization': `Bearer ${token}`
+        }
       });
 
-      if (!userResponse.ok) throw new Error('Erro ao buscar dados do usuário');
+      if (!userResponse.ok) {
+        throw new Error('Falha ao buscar dados do usuário');
+      }
 
       const userData = await userResponse.json();
 
-      const preferencesResponse = await fetch(`${connectionUrl}/preferences`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      if (preferencesResponse.ok) {
-        const preferencesData = await preferencesResponse.json();
-        const imc = calculateIMC(preferencesData.weight, preferencesData.height);
-        
-        setUserData({
-          ...userData,
-          preferences: {
-            ...preferencesData,
-            imc
-          },
-          plan: 'Silver Plan', // Você pode ajustar isso conforme necessário
-          image: 'https://images.unsplash.com/photo-1633332755192-727a05c4013d?w=500&h=500&fit=crop',
-          stats: {
-            steps: 9300,
-            calories: 2900,
-            progress: 86
+      // Buscar preferências do usuário se for ALUNO
+      if (userData.role === 'ALUNO') {
+        const preferencesResponse = await fetch(`${connectionUrl}/preferences`, {
+          headers: {
+            'Authorization': `Bearer ${token}`
           }
         });
-      } else {
+
+        if (preferencesResponse.ok) {
+          const preferencesData = await preferencesResponse.json();
+          const imc = calculateIMC(preferencesData.weight, preferencesData.height);
+
+          setUserData({
+            ...userData,
+            preferenciasAluno: {
+              ...preferencesData,
+              imc
+            },
+            stats: {
+              steps: 8000,
+              calories: 1200,
+              progress: 75
+            }
+          });
+        } else {
+          setUserData({
+            ...userData,
+            stats: {
+              steps: 8000,
+              calories: 1200,
+              progress: 75
+            }
+          });
+        }
+      } 
+      // Buscar dados do personal se for PERSONAL
+      else if (userData.role === 'PERSONAL') {
+        const personalResponse = await fetch(`${connectionUrl}/personal/${userData.id}`, {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+
+        if (personalResponse.ok) {
+          const personalData = await personalResponse.json();
+          setUserData({
+            ...userData,
+            preferenciasPersonal: personalData
+          });
+        } else {
+          setUserData(userData);
+        }
+      }
+      // Buscar dados da academia se for ACADEMIA
+      else if (userData.role === 'ACADEMIA') {
+        const academiaResponse = await fetch(`${connectionUrl}/academia-profile`, {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+
+        if (academiaResponse.ok) {
+          const academiaData = await academiaResponse.json();
+          setUserData({
+            ...userData,
+            academia: academiaData
+          });
+        } else {
+          setUserData(userData);
+        }
+      }
+      else {
         setUserData(userData);
       }
     } catch (error) {
-      console.error('Erro ao buscar dados:', error);
+      console.error('Erro ao buscar dados do usuário:', error);
+      setUserData(null);
     }
   };
 
@@ -114,8 +211,8 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
 // eslint-disable-next-line react-refresh/only-export-components
 export const useUser = () => {
   const context = useContext(UserContext);
-  if (!context) {
-    throw new Error('useUser must be used within a UserProvider');
+  if (context === undefined) {
+    throw new Error('useUser deve ser usado dentro de um UserProvider');
   }
   return context;
 }; 

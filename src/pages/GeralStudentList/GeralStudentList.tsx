@@ -23,21 +23,41 @@ const StudentList: FC = () => {
 
   useEffect(() => {
     const fetchStudents = async () => {
+      setIsLoading(true);
       try {
+        const token = localStorage.getItem('token');
+        if (!token) {
+          throw new Error('Token não encontrado');
+        }
+
         const response = await fetch(`${connectionUrl}/all-students`, {
           method: 'GET',
           headers: {
+            'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json'
           }
         });
 
         if (!response.ok) {
-          throw new Error('Erro ao buscar lista de alunos');
+          throw new Error('Falha ao buscar alunos');
         }
 
         const data = await response.json();
-        setStudents(data);
-        setFilteredStudents(data);
+        
+        // Garantir que todos os campos necessários existam
+        const processedData = data.map((student: Student) => ({
+          id: student.id || 0,
+          name: student.name || 'Nome não informado',
+          age: student.age || 'N/A',
+          weight: student.weight || 'Não informado',
+          height: student.height || 'Não informado',
+          goal: student.goal || 'Não informado',
+          trainingTime: student.trainingTime || 'Iniciante',
+          imageUrl: student.imageUrl || undefined
+        }));
+        
+        setStudents(processedData);
+        setFilteredStudents(processedData);
       } catch (error) {
         console.error('Erro ao buscar alunos:', error);
         Swal.fire('Erro!', 'Não foi possível carregar a lista de alunos', 'error');

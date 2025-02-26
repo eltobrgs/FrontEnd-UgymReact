@@ -1,105 +1,50 @@
-import { FC, useState, FormEvent, useEffect } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { FC, useState, FormEvent } from 'react';
 import { FaBriefcase } from 'react-icons/fa';
 import Input from '../../components/input/Input';
 import Button from '../../components/Button/Button';
-import { useAuth } from '../../contexts/AuthContext';
-import { useUser } from '../../contexts/UserContext';
+import Modal from '../../components/Modal/Modal';
 import Swal from 'sweetalert2';
 import { connectionUrl } from '../../config/api';
 
-
-interface PersonalProfileFormData {
-  birthDate: string;
-  gender: string;
-  specializations: string;
-  yearsOfExperience: string;
-  workSchedule: string;
-  certifications: string;
-  biography: string;
-  workLocation: string;
-  pricePerHour: string;
-  languages: string;
-  socialMedia: {
-    instagram: string;
-    linkedin: string;
+interface PersonalProfileSetupModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onSuccess: () => void;
+  userId: string;
+  initialData?: {
+    birthDate: string;
+    gender: string;
+    specializations: string[];
+    yearsOfExperience: string;
+    workSchedule: string;
+    certifications: string[];
+    biography: string;
+    workLocation: string;
+    pricePerHour: string;
+    languages: string[];
+    instagram?: string;
+    linkedin?: string;
   };
 }
 
-const PersonalProfileSetup: FC = () => {
-  const navigate = useNavigate();
-  const location = useLocation();
-  const { setIsAuthenticated } = useAuth();
-  const { fetchUserData } = useUser();
-  const isEditing = location.pathname === '/edit-personal-profile';
+const PersonalProfileSetup: FC<PersonalProfileSetupModalProps> = ({ isOpen, onClose, onSuccess, userId, initialData }) => {
   const [isLoading, setIsLoading] = useState(false);
-  const [formData, setFormData] = useState<PersonalProfileFormData>({
-    birthDate: '',
-    gender: '',
-    specializations: '',
-    yearsOfExperience: '',
-    workSchedule: '',
-    certifications: '',
-    biography: '',
-    workLocation: '',
-    pricePerHour: '',
-    languages: '',
+  const [formData, setFormData] = useState({
+    birthDate: initialData?.birthDate || '',
+    gender: initialData?.gender || '',
+    specializations: initialData?.specializations?.join(', ') || '',
+    yearsOfExperience: initialData?.yearsOfExperience || '',
+    workSchedule: initialData?.workSchedule || '',
+    certifications: initialData?.certifications?.join(', ') || '',
+    biography: initialData?.biography || '',
+    workLocation: initialData?.workLocation || '',
+    pricePerHour: initialData?.pricePerHour || '',
+    languages: initialData?.languages?.join(', ') || '',
     socialMedia: {
-      instagram: '',
-      linkedin: ''
+      instagram: initialData?.instagram || '',
+      linkedin: initialData?.linkedin || ''
     }
   });
-
-  useEffect(() => {
-    const fetchPersonalData = async () => {
-      if (!isEditing) return;
-
-      try {
-        const token = localStorage.getItem('token');
-        const userId = localStorage.getItem('userId');
-
-        if (!token || !userId) {
-          throw new Error('Dados de autenticação não encontrados');
-        }
-
-        const response = await fetch(`${connectionUrl}/personal/${userId}`, {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          }
-        });
-
-        if (!response.ok) {
-          throw new Error('Erro ao buscar dados do perfil');
-        }
-
-        const data = await response.json();
-
-        setFormData({
-          birthDate: data.birthDate?.split('T')[0] || '',
-          gender: data.gender || '',
-          specializations: data.specializations?.join(', ') || '',
-          yearsOfExperience: data.yearsOfExperience || '',
-          workSchedule: data.workSchedule || '',
-          certifications: data.certifications?.join(', ') || '',
-          biography: data.biography || '',
-          workLocation: data.workLocation || '',
-          pricePerHour: data.pricePerHour || '',
-          languages: data.languages?.join(', ') || '',
-          socialMedia: {
-            instagram: data.instagram || '',
-            linkedin: data.linkedin || ''
-          }
-        });
-      } catch (error) {
-        console.error('Erro ao carregar dados:', error);
-        Swal.fire('Erro!', 'Não foi possível carregar os dados do perfil', 'error');
-        navigate(-1);
-      }
-    };
-
-    fetchPersonalData();
-  }, [isEditing, navigate]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -126,8 +71,8 @@ const PersonalProfileSetup: FC = () => {
 
     try {
       const token = localStorage.getItem('token');
-      if (!token) {
-        throw new Error('Token não encontrado');
+      if (!token || !userId) {
+        throw new Error('Dados de autenticação não encontrados');
       }
 
       const response = await fetch(`${connectionUrl}/personal-preferences`, {
@@ -138,6 +83,7 @@ const PersonalProfileSetup: FC = () => {
         },
         body: JSON.stringify({
           ...formData,
+          birthDate: formData.birthDate ? new Date(formData.birthDate).toLocaleDateString('pt-BR') : '',
           specializations: formData.specializations.split(',').map(s => s.trim()),
           certifications: formData.certifications.split(',').map(c => c.trim()),
           languages: formData.languages.split(',').map(l => l.trim())
@@ -149,217 +95,213 @@ const PersonalProfileSetup: FC = () => {
         throw new Error(errorData.error || 'Erro ao salvar preferências');
       }
 
-      setIsAuthenticated(true);
-      await fetchUserData();
-      
       await Swal.fire({
         title: 'Sucesso!',
-        text: 'Perfil configurado com sucesso!',
+        text: 'Cadastro realizado com sucesso!',
         icon: 'success',
         timer: 2000,
         showConfirmButton: false
       });
       
-      if (isEditing) {
-        navigate(-1);
-      } else {
-        navigate('/');
-      }
+      onSuccess();
+      onClose();
+      
     } catch (error) {
       console.error('Erro ao salvar perfil:', error);
-      Swal.fire('Erro!', error instanceof Error ? error.message : 'Falha ao salvar perfil. Tente novamente.', 'error');
+      Swal.fire({
+        title: 'Erro!',
+        text: error instanceof Error ? error.message : 'Falha ao salvar perfil',
+        icon: 'error'
+      });
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-2xl mx-auto">
-        <div className="text-center mb-8">
-          <h2 className="text-3xl font-extrabold text-gray-900">
-            {isEditing ? 'Editar Perfil Profissional' : 'Configure seu Perfil Profissional'}
-          </h2>
-          <p className="mt-2 text-sm text-gray-600">
-            Complete seu perfil para começar a atender alunos
-          </p>
-        </div>
+    <Modal
+      isOpen={isOpen}
+      onClose={onClose}
+      title="Configure seu Perfil Profissional"
+    >
+      <div className="p-4">
+        <p className="text-sm text-gray-600 mb-6">
+          Complete seu perfil para começar a atender alunos
+        </p>
 
-        <div className="bg-white shadow-lg rounded-lg p-6 md:p-8">
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <Input
-                label="Data de Nascimento"
-                type="date"
-                name="birthDate"
-                value={formData.birthDate}
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <Input
+              label="Data de Nascimento"
+              type="date"
+              name="birthDate"
+              value={formData.birthDate}
+              onChange={handleChange}
+              required
+            />
+
+            <div className="w-full">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Gênero
+              </label>
+              <select
+                name="gender"
+                value={formData.gender}
                 onChange={handleChange}
+                className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500"
                 required
-              />
-
-              <div className="w-full">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Gênero
-                </label>
-                <select
-                  name="gender"
-                  value={formData.gender}
-                  onChange={handleChange}
-                  className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                  required
-                >
-                  <option value="">Selecione...</option>
-                  <option value="masculino">Masculino</option>
-                  <option value="feminino">Feminino</option>
-                  <option value="outro">Outro</option>
-                  <option value="prefiro_nao_dizer">Prefiro não dizer</option>
-                </select>
-              </div>
-
-              <Input
-                label="Anos de Experiência"
-                type="number"
-                name="yearsOfExperience"
-                value={formData.yearsOfExperience}
-                onChange={handleChange}
-                icon={<FaBriefcase size={20} />}
-                placeholder="Ex: 5"
-                min="0"
-                max="50"
-                required
-              />
-
-              <Input
-                label="Preço por Hora (R$)"
-                type="number"
-                name="pricePerHour"
-                value={formData.pricePerHour}
-                onChange={handleChange}
-                placeholder="Ex: 100"
-                min="0"
-                required
-              />
-
-              <Input
-                label="Local de Trabalho"
-                type="text"
-                name="workLocation"
-                value={formData.workLocation}
-                onChange={handleChange}
-                placeholder="Ex: Academia XYZ, Atendimento domiciliar"
-                required
-              />
-
-              <Input
-                label="Idiomas"
-                type="text"
-                name="languages"
-                value={formData.languages}
-                onChange={handleChange}
-                placeholder="Ex: Português, Inglês"
-                required
-              />
-
-              <Input
-                label="Instagram"
-                type="text"
-                name="socialMedia.instagram"
-                value={formData.socialMedia.instagram}
-                onChange={handleChange}
-                placeholder="@seu.perfil"
-              />
-
-              <Input
-                label="LinkedIn"
-                type="text"
-                name="socialMedia.linkedin"
-                value={formData.socialMedia.linkedin}
-                onChange={handleChange}
-                placeholder="URL do seu perfil"
-              />
-            </div>
-
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Especializações
-                </label>
-                <textarea
-                  name="specializations"
-                  value={formData.specializations}
-                  onChange={handleChange}
-                  className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                  rows={3}
-                  placeholder="Liste suas especializações (ex: Musculação, Crossfit, Pilates)"
-                  required
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Certificações
-                </label>
-                <textarea
-                  name="certifications"
-                  value={formData.certifications}
-                  onChange={handleChange}
-                  className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                  rows={3}
-                  placeholder="Liste suas principais certificações e formações"
-                  required
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Biografia
-                </label>
-                <textarea
-                  name="biography"
-                  value={formData.biography}
-                  onChange={handleChange}
-                  className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                  rows={4}
-                  placeholder="Conte um pouco sobre sua trajetória e metodologia de trabalho"
-                  required
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Horários de Trabalho
-                </label>
-                <textarea
-                  name="workSchedule"
-                  value={formData.workSchedule}
-                  onChange={handleChange}
-                  className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                  rows={3}
-                  placeholder="Descreva sua disponibilidade de horários"
-                  required
-                />
-              </div>
-            </div>
-
-            <div className="flex justify-end space-x-4">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => navigate(-1)}
               >
-                Voltar
-              </Button>
-              <Button
-                type="submit"
-                isLoading={isLoading}
-              >
-                {isEditing ? 'Salvar Alterações' : 'Concluir Cadastro'}
-              </Button>
+                <option value="">Selecione...</option>
+                <option value="masculino">Masculino</option>
+                <option value="feminino">Feminino</option>
+                <option value="outro">Outro</option>
+                <option value="prefiro_nao_dizer">Prefiro não dizer</option>
+              </select>
             </div>
-          </form>
-        </div>
+
+            <Input
+              label="Anos de Experiência"
+              type="number"
+              name="yearsOfExperience"
+              value={formData.yearsOfExperience}
+              onChange={handleChange}
+              icon={<FaBriefcase size={20} />}
+              placeholder="Ex: 5"
+              min="0"
+              max="50"
+              required
+            />
+
+            <Input
+              label="Preço por Hora (R$)"
+              type="number"
+              name="pricePerHour"
+              value={formData.pricePerHour}
+              onChange={handleChange}
+              placeholder="Ex: 100"
+              min="0"
+              required
+            />
+
+            <Input
+              label="Local de Trabalho"
+              type="text"
+              name="workLocation"
+              value={formData.workLocation}
+              onChange={handleChange}
+              placeholder="Ex: Academia XYZ, Atendimento domiciliar"
+              required
+            />
+
+            <Input
+              label="Idiomas"
+              type="text"
+              name="languages"
+              value={formData.languages}
+              onChange={handleChange}
+              placeholder="Ex: Português, Inglês"
+              required
+            />
+
+            <Input
+              label="Instagram"
+              type="text"
+              name="socialMedia.instagram"
+              value={formData.socialMedia.instagram}
+              onChange={handleChange}
+              placeholder="@seu.perfil"
+            />
+
+            <Input
+              label="LinkedIn"
+              type="text"
+              name="socialMedia.linkedin"
+              value={formData.socialMedia.linkedin}
+              onChange={handleChange}
+              placeholder="URL do seu perfil"
+            />
+          </div>
+
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Especializações
+              </label>
+              <textarea
+                name="specializations"
+                value={formData.specializations}
+                onChange={handleChange}
+                className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                rows={3}
+                placeholder="Liste suas especializações (ex: Musculação, Crossfit, Pilates)"
+                required
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Certificações
+              </label>
+              <textarea
+                name="certifications"
+                value={formData.certifications}
+                onChange={handleChange}
+                className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                rows={3}
+                placeholder="Liste suas principais certificações e formações"
+                required
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Biografia
+              </label>
+              <textarea
+                name="biography"
+                value={formData.biography}
+                onChange={handleChange}
+                className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                rows={4}
+                placeholder="Conte um pouco sobre sua trajetória e metodologia de trabalho"
+                required
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Horários de Trabalho
+              </label>
+              <textarea
+                name="workSchedule"
+                value={formData.workSchedule}
+                onChange={handleChange}
+                className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                rows={3}
+                placeholder="Descreva sua disponibilidade de horários"
+                required
+              />
+            </div>
+          </div>
+
+          <div className="flex justify-end space-x-4 mt-6">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={onClose}
+            >
+              Cancelar
+            </Button>
+            <Button
+              type="submit"
+              isLoading={isLoading}
+            >
+              Concluir Cadastro
+            </Button>
+          </div>
+        </form>
       </div>
-    </div>
+    </Modal>
   );
 };
 
