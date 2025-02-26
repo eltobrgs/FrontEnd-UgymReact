@@ -38,7 +38,15 @@ const UserRoutes: FC<UserRoutesProps> = ({ userData }) => {
       />
       <Route 
         path="/edit-profile" 
-        element={<ProfileSetup />} 
+        element={
+          <ProfileSetup
+            isOpen={true}
+            onClose={() => window.history.back()}
+            onSuccess={() => window.history.back()}
+            userId={userData?.id?.toString() || ''}
+            initialData={userData?.preferenciasAluno}
+          />
+        } 
       />
       <Route 
         path="/reports" 
