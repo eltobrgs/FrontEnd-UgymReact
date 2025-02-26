@@ -11,6 +11,7 @@ import DietPlan from '../pages/DietPlan/DietPlan';
 import PersonalList from '../pages/PersonalList/PersonalList';
 import Settings from '../pages/Settings/Settings';
 import ProfileSetup from '../pages/Auth/ProfileSetup';
+// import PersonalProfile from '../pages/PersonalProfile/PersonalProfile';
 
 interface UserRoutesProps {
   userData: UserData | null;
