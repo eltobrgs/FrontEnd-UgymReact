@@ -26,7 +26,10 @@ const AcademiaRoutes: FC<AcademiaRoutesProps> = ({ userData }) => {
     <Routes>
       <Route path="/" element={<AcademiaDashboard />} />
       <Route path="/profile" element={<AcademiaProfile />} />
-      <Route path="/edit-academia-profile" element={<AcademiaProfileSetup />} />
+      <Route 
+        path="/edit-academia-profile" 
+        element={<AcademiaProfileSetup />} 
+      />
       <Route path="/students" element={<GeralStudentList />} />
       <Route path="/personals" element={<PersonalList />} />
       <Route path="/PersonalRegister" element={<PersonalRegister />} />

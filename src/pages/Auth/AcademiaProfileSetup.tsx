@@ -23,7 +23,26 @@ interface AcademiaProfileFormData {
   };
 }
 
-const AcademiaProfileSetup: FC = () => {
+interface AcademiaProfileSetupProps {
+  isOpen?: boolean;
+  onClose?: () => void;
+  onSuccess?: () => void;
+  userId?: string;
+  initialData?: {
+    cnpj?: string;
+    endereco?: string;
+    telefone?: string;
+    horarioFuncionamento?: string;
+    descricao?: string;
+    comodidades?: string[];
+    planos?: string[];
+    website?: string;
+    instagram?: string;
+    facebook?: string;
+  };
+}
+
+const AcademiaProfileSetup: FC<AcademiaProfileSetupProps> = ({ onSuccess, onClose }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const { fetchUserData } = useUser();
@@ -168,8 +187,14 @@ const AcademiaProfileSetup: FC = () => {
         showConfirmButton: false
       });
       
-      if (isEditing) {
-        navigate(-1);
+      if (onSuccess) {
+        onSuccess();
+      } else if (isEditing) {
+        if (onClose) {
+          onClose();
+        } else {
+          navigate(-1);
+        }
       } else {
         navigate('/auth/academia-profile-setup');
       }
