@@ -31,6 +31,7 @@ const PersonalLayout: FC<PersonalLayoutProps> = ({
         onToggle={onToggleSidebar}
         userName={userData?.name || 'Usuário'}
         userPlan={userData?.plan || 'Plano Básico'}
+        userImage={userData?.image || 'https://via.placeholder.com/50'}
       />
       <div className="flex-1 flex flex-col overflow-hidden">
         <PersonalHeader 
