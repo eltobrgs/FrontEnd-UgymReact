@@ -74,7 +74,6 @@ export interface UserData {
   image?: string;
   stats?: Stats;
   userPlan?: string;
-  imageUrl?: string;
 }
 
 interface UserContextType {

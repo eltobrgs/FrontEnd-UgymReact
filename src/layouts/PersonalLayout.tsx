@@ -16,7 +16,6 @@ const PersonalLayout: FC<PersonalLayoutProps> = ({
   userData, 
   isSidebarOpen, 
   onToggleSidebar 
-  
 }) => {
   const location = useLocation();
   const isAuthRoute = location.pathname.startsWith('/auth');
@@ -32,7 +31,6 @@ const PersonalLayout: FC<PersonalLayoutProps> = ({
         onToggle={onToggleSidebar}
         userName={userData?.name || 'Usuário'}
         userPlan={userData?.plan || 'Plano Básico'}
-        userImage={userData?.imageUrl || 'https://via.placeholder.com/50'}
       />
       <div className="flex-1 flex flex-col overflow-hidden">
         <PersonalHeader 
