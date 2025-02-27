@@ -20,7 +20,7 @@ interface PersonalSidebarProps {
   onToggle: () => void;
 }
 
-const PersonalSidebar: FC<PersonalSidebarProps> = ({ userName, userImage, isOpen, onToggle }) => {
+const PersonalSidebar: FC<PersonalSidebarProps> = ({ userName, userPlan, userImage, isOpen, onToggle }) => {
   const menuItems = [
     { icon: FaHome, text: 'Dashboard', path: '/' },
     { icon: FaUsers, text: 'Todos os Alunos', path: '/students' },
@@ -109,7 +109,10 @@ const PersonalSidebar: FC<PersonalSidebarProps> = ({ userName, userImage, isOpen
             />
             <div>
               <h2 className="font-semibold">{userName}</h2>
-              <span className="text-sm px-2 py-1 bg-red-600 rounded-full">Personal Trainer</span>
+              <div className="flex flex-col">
+                <span className="text-sm px-2 py-1 bg-red-600 rounded-full">Personal Trainer</span>
+                <span className="text-xs text-gray-400 mt-1">{userPlan}</span>
+              </div>
             </div>
           </div>
         </div>

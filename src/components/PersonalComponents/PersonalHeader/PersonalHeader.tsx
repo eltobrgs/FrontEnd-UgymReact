@@ -6,13 +6,14 @@ import { connectionUrl } from '../../../config/api';
 
 interface PersonalHeaderProps {
   userName: string;
+  userImage?: string;
 }
 
 interface ApiError {
   message: string;
 }
 
-const PersonalHeader: FC<PersonalHeaderProps> = ({ userName }) => {
+const PersonalHeader: FC<PersonalHeaderProps> = ({ userName, userImage }) => {
   const navigate = useNavigate();
 
   // Componente de loading para o nome do usuário
@@ -99,10 +100,18 @@ const PersonalHeader: FC<PersonalHeaderProps> = ({ userName }) => {
           </button>
           <button
             onClick={() => navigate('/personal-profile')}
-            className="p-2 text-gray-600 hover:text-red-600 hover:bg-gray-100 rounded-full transition-colors"
+            className="p-2 text-gray-600 hover:text-red-600 hover:bg-gray-100 rounded-full transition-colors relative"
             aria-label="Perfil"
           >
-            <FaUser size={20} />
+            {userImage ? (
+              <img 
+                src={userImage} 
+                alt={userName} 
+                className="w-5 h-5 rounded-full object-cover"
+              />
+            ) : (
+              <FaUser size={20} />
+            )}
           </button>
           <button
             onClick={() => navigate('/settings')}
