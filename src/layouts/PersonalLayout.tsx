@@ -3,7 +3,7 @@ import { useLocation } from 'react-router-dom';
 import PersonalSidebar from '../components/PersonalComponents/PersonalSidebar/PersonalSidebar';
 import PersonalHeader from '../components/PersonalComponents/PersonalHeader/PersonalHeader';
 import { UserData } from '../contexts/UserContext';
-
+//SOCORRO DEUS
 interface PersonalLayoutProps {
   children: ReactNode;
   userData: UserData | null;
