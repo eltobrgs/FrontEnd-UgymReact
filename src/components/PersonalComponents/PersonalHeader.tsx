@@ -2,7 +2,7 @@ import { FC } from 'react';
 import { FaCog, FaUser, FaBell, FaPlus } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
 import Swal from 'sweetalert2';
-import { connectionUrl } from '../../../config/api';
+import { connectionUrl } from '../../config/api';
 
 interface PersonalHeaderProps {
   userName: string;

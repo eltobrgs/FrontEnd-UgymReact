@@ -5,8 +5,8 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../../contexts/AuthContext';
 import { useUser } from '../../../contexts/UserContext';
 import Swal from 'sweetalert2';
-import ProfileSetup from '../Auth/AlunoProfileSetup';
-import PersonalProfileSetup from '../Auth/PersonalProfileSetup';
+import ProfileSetup from '../../Auth/AlunoProfileSetup';
+import PersonalProfileSetup from '../../Auth/PersonalProfileSetup';
 
 interface SettingsProps {
   userName: string;
