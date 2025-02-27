@@ -1,7 +1,7 @@
 import { FC, ReactNode } from 'react';
 import { useLocation } from 'react-router-dom';
-import Sidebar from '../components/PersonalSidebar/PersonalSidebar';
-import Header from '../components/PersonalHeader/PersonalHeader';
+import PersonalSidebar from '../components/PersonalComponents/PersonalSidebar/PersonalSidebar';
+import PersonalHeader from '../components/PersonalComponents/PersonalHeader/PersonalHeader';
 import { UserData } from '../contexts/UserContext';
 
 interface PersonalLayoutProps {
@@ -26,15 +26,14 @@ const PersonalLayout: FC<PersonalLayoutProps> = ({
 
   return (
     <div className="flex h-screen bg-gray-100">
-      <Sidebar
+      <PersonalSidebar
         isOpen={isSidebarOpen}
         onToggle={onToggleSidebar}
         userName={userData?.name || 'Personal'}
-        userPlan="Personal Trainer"
-        userImage={userData?.image}
+        userImage={userData?.imageUrl}
       />
       <div className="flex-1 flex flex-col overflow-hidden">
-        <Header 
+        <PersonalHeader 
           userName={userData?.name || 'Personal'}
         />
         <main className="flex-1 overflow-x-hidden overflow-y-auto bg-gray-50 p-4">

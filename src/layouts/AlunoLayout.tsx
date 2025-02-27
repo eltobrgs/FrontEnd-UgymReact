@@ -1,24 +1,24 @@
 import { FC, ReactNode } from 'react';
 import { useLocation } from 'react-router-dom';
-import AcademiaHeader from '../components/AcademiaComponents/AcademiaHeader/AcademiaHeader';
-import AcademiaSidebar from '../components/AcademiaComponents/AcademiaSidebar/AcademiaSidebar';
+import AlunoSidebar from '../components/AlunoComponents/AlunoSidebar/AlunoSidebar';
+import AlunoHeader from '../components/AlunoComponents/AlunoHeader/AlunoHeader';
 import { UserData } from '../contexts/UserContext';
 
-interface AcademiaLayoutProps {
+interface AlunoLayoutProps {
   children: ReactNode;
   userData: UserData | null;
   isSidebarOpen: boolean;
   onToggleSidebar: () => void;
 }
 
-const AcademiaLayout: FC<AcademiaLayoutProps> = ({ 
+const AlunoLayout: FC<AlunoLayoutProps> = ({ 
   children, 
   userData, 
   isSidebarOpen, 
   onToggleSidebar 
 }) => {
   const location = useLocation();
-  const isAuthRoute = location.pathname.includes('/auth');
+  const isAuthRoute = location.pathname.startsWith('/auth');
 
   if (isAuthRoute) {
     return <>{children}</>;
@@ -26,14 +26,16 @@ const AcademiaLayout: FC<AcademiaLayoutProps> = ({
 
   return (
     <div className="flex h-screen bg-gray-100">
-      <AcademiaSidebar
-        userName={userData?.name || ''}
+      <AlunoSidebar
         isOpen={isSidebarOpen}
         onToggle={onToggleSidebar}
+        userName={userData?.name || 'Usuário'}
+        userPlan={userData?.plan || 'Plano Básico'}
+        userImage={'https://via.placeholder.com/50'}
       />
       <div className="flex-1 flex flex-col overflow-hidden">
-        <AcademiaHeader userName={userData?.name || ''} />
-        <main className="flex-1 overflow-x-hidden overflow-y-auto bg-gray-100 p-4">
+        <AlunoHeader userName={userData?.name || 'Usuário'} />
+        <main className="flex-1 overflow-x-hidden overflow-y-auto">
           {children}
         </main>
       </div>
@@ -41,4 +43,4 @@ const AcademiaLayout: FC<AcademiaLayoutProps> = ({
   );
 };
 
-export default AcademiaLayout; 
+export default AlunoLayout; 

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { BrowserRouter as Router } from 'react-router-dom';
-import MainLayout from './layouts/MainLayout';
+import AlunoLayout from './layouts/AlunoLayout';
 import PersonalLayout from './layouts/PersonalLayout';
 import AcademiaLayout from './layouts/AcademiaLayout';
 import AppRoutes from './routes/Routes';
@@ -62,7 +62,7 @@ const AppContent = () => {
       Layout = AcademiaLayout;
       break;
     default:
-      Layout = MainLayout;
+      Layout = AlunoLayout;
   }
 
   return (

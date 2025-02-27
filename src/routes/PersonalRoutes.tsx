@@ -3,11 +3,11 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import { UserData } from '../contexts/UserContext';
 
 // Páginas do Personal
-import PersonalDashboard from '../pages/PersonalDashboard/PersonalDashboard';
-import PersonalProfile from '../pages/PersonalProfile/PersonalProfile';
-import GeralStudentList from '../pages/GeralStudentList/GeralStudentList';
-import ExpecStudentList from '../pages/ExpecStudentList/ExpecStudentList';
-import Settings from '../pages/Settings/Settings';
+import PersonalDashboard from '../pages/PersonalPages/PersonalDashboard/PersonalDashboard';
+import PersonalProfile from '../pages/PersonalPages/PersonalProfile/PersonalProfile';
+import GeralStudentList from '../pages/GeralPurposePages/GeralStudentList/GeralStudentList';
+import ExpecStudentList from '../pages/GeralPurposePages/ExpecStudentList/ExpecStudentList';
+import Settings from '../pages/GeralPurposePages/Settings/Settings';
 
 interface PersonalRoutesProps {
   userData: UserData | null;

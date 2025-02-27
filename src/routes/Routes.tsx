@@ -4,16 +4,12 @@ import { useAuth } from '../contexts/AuthContext';
 import { UserData } from '../contexts/UserContext';
 
 // Páginas de Autenticação
-import Login from '../pages/Auth/Login';
-// import Register from '../pages/Auth/Register';
-// import ProfileSetup from '../pages/Auth/ProfileSetup';
-// import PersonalRegister from '../pages/Auth/PersonalRegister';
-// import PersonalProfileSetup from '../pages/Auth/PersonalProfileSetup';
-import AcademiaRegister from '../pages/Auth/AcademiaRegister';
-import AcademiaProfileSetup from '../pages/Auth/AcademiaProfileSetup';
+import Login from '../pages/GeralPurposePages/Auth/Login';
+import AcademiaRegister from '../pages/GeralPurposePages/Auth/AcademiaRegister';
+import AcademiaProfileSetup from '../pages/GeralPurposePages/Auth/AcademiaProfileSetup';
 
 // Rotas específicas
-import UserRoutes from './UserRoutes';
+import UserRoutes from './AlunoRoutes';
 import PersonalRoutes from './PersonalRoutes';
 import AcademiaRoutes from './AcademiaRoutes';
 
