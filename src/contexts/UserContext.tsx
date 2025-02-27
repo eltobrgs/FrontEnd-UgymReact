@@ -73,6 +73,8 @@ export interface UserData {
   plan?: string;
   image?: string;
   stats?: Stats;
+  userPlan?: string;
+  imageUrl?: string;
 }
 
 interface UserContextType {
