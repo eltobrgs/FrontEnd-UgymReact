@@ -1,11 +1,11 @@
 import { FC } from 'react';
 import { FaBed, FaBiking, FaRunning, FaDumbbell } from 'react-icons/fa';
-import DietPlan from '../../../components/GeralPurposeComponents/DietPlan/DietPlan';
-import TrainersList from '../../../components/GeralPurposeComponents/Trainers/TrainersList';
-import EventsList from '../../../components/GeralPurposeComponents/Events/EventsList';
-import { WelcomeSection } from '../../../components/GeralPurposeComponents/WelcomeSection/WelcomeSection';
-import StatsSection from '../../../components/GeralPurposeComponents/StatsSection/StatsSection';
-import ActivityCards from '../../../components/GeralPurposeComponents/ActivityCards/ActivityCards';
+import DietPlan from '../../components/GeralPurposeComponents/DietPlan/DietPlan';
+import TrainersList from '../../components/GeralPurposeComponents/Trainers/TrainersList';
+import EventsList from '../../components/GeralPurposeComponents/Events/EventsList';
+import StatsSection from '../../components/GeralPurposeComponents/StatsSection/StatsSection';
+import { WelcomeSection } from '../../components/GeralPurposeComponents/WelcomeSection/WelcomeSection';
+import ActivityCards from '../../components/GeralPurposeComponents/ActivityCards/ActivityCards';
 // import ChartsSection from '../../../components/GeralPurposeComponents/ChartsSection/ChartsSection';
 
 interface AlunoDashboardProps {

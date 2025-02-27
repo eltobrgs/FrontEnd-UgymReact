@@ -1,7 +1,7 @@
 import { FC, ReactNode } from 'react';
 import { useLocation } from 'react-router-dom';
-import PersonalSidebar from '../components/PersonalComponents/PersonalSidebar/PersonalSidebar';
-import PersonalHeader from '../components/PersonalComponents/PersonalHeader/PersonalHeader';
+import PersonalSidebar from '../components/PersonalComponents/PersonalSidebar';
+import PersonalHeader from '../components/PersonalComponents/PersonalHeader';
 import { UserData } from '../contexts/UserContext';
 //SOCORRO DEUS
 interface PersonalLayoutProps {

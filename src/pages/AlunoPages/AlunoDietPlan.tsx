@@ -1,7 +1,7 @@
 import { FC } from 'react';
 import { FiSettings } from 'react-icons/fi';
 import { FaAppleAlt, FaClock, FaFire, FaWater, FaLeaf } from 'react-icons/fa';
-import ChartsSection from '../../../components/GeralPurposeComponents/ChartsSection/ChartsSection';
+import ChartsSection from '../../components/GeralPurposeComponents/ChartsSection/ChartsSection';
 import Swal from 'sweetalert2';
 
 interface Food {

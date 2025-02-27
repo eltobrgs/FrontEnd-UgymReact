@@ -1,7 +1,7 @@
 import { FC, useEffect, useState } from 'react';
 import { FaUsers, FaChartLine, FaCalendarCheck, FaMoneyBillWave } from 'react-icons/fa';
-import StudentCard from '../../../components/GeralPurposeComponents/StudentCard/StudentCard';
-import { connectionUrl } from '../../../config/api';
+import StudentCard from '../../components/GeralPurposeComponents/StudentCard/StudentCard';
+import { connectionUrl } from '../../config/api';
 
 interface Student {
   id: number;

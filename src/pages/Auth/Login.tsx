@@ -1,13 +1,13 @@
 import { FC, useState, FormEvent } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { FiMail, FiLock } from 'react-icons/fi';
-import Input from '../../../components/GeralPurposeComponents/input/Input';
-import Button from '../../../components/GeralPurposeComponents/Button/Button';
-import logo from '../../../assets/logo.png';
-import { useAuth } from '../../../contexts/AuthContext';
-import { useUser } from '../../../contexts/UserContext';
+import Input from '../../components/GeralPurposeComponents/input/Input';
+import Button from '../../components/GeralPurposeComponents/Button/Button';
+import logo from '../../assets/logo.png';
+import { useAuth } from '../../contexts/AuthContext';
+import { useUser } from '../../contexts/UserContext';
 import Swal from 'sweetalert2';
-import { connectionUrl } from '../../../config/api';
+import { connectionUrl } from '../../config/api';
 
 const Login: FC = () => {
   const navigate = useNavigate();

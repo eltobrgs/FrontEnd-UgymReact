@@ -3,13 +3,13 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import { UserData } from '../contexts/UserContext';
 
 // Páginas da Academia
-import AcademiaDashboard from '../pages/AcademiaPages/AcademiaDashboard/AcademiaDashboard';
-import AcademiaProfile from '../pages/AcademiaPages/AcademiaProfile/AcademiaProfile';
-import AcademiaProfileSetup from '../pages/GeralPurposePages/Auth/AcademiaProfileSetup';
+import AcademiaDashboard from '../pages/AcademiaPages/AcademiaDashboard';
+import AcademiaProfile from '../pages/AcademiaPages/AcademiaProfile';
+import AcademiaProfileSetup from '../pages/Auth/AcademiaProfileSetup';
 import AcademiaStudents from '../pages/GeralPurposePages/GeralStudentList/GeralStudentList';
-import PersonalRegister from '../pages/GeralPurposePages/Auth/PersonalRegister';
-import StudentRegister from '../pages/GeralPurposePages/Auth/AlunoRegister';
-import PersonalList from '../pages/PersonalPages/PersonalList/PersonalList';
+import PersonalRegister from '../pages/Auth/PersonalRegister';
+import StudentRegister from '../pages/Auth/AlunoRegister';
+import PersonalList from '../pages/PersonalPages/PersonalList';
 import Settings from '../pages/GeralPurposePages/Settings/Settings';
 
 

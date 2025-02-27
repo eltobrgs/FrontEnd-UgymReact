@@ -3,8 +3,8 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import { UserData } from '../contexts/UserContext';
 
 // Páginas do Personal
-import PersonalDashboard from '../pages/PersonalPages/PersonalDashboard/PersonalDashboard';
-import PersonalProfile from '../pages/PersonalPages/PersonalProfile/PersonalProfile';
+import PersonalDashboard from '../pages/PersonalPages/PersonalDashboard';
+import PersonalProfile from '../pages/PersonalPages/PersonalProfile';
 import GeralStudentList from '../pages/GeralPurposePages/GeralStudentList/GeralStudentList';
 import ExpecStudentList from '../pages/GeralPurposePages/ExpecStudentList/ExpecStudentList';
 import Settings from '../pages/GeralPurposePages/Settings/Settings';

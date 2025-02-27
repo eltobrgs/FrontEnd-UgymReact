@@ -1,13 +1,13 @@
 import { FC, useState, FormEvent } from 'react';
-import { FiMail, FiLock, FiUser, FiBriefcase } from 'react-icons/fi';
-import Input from '../../../components/GeralPurposeComponents/input/Input';
-import Button from '../../../components/GeralPurposeComponents/Button/Button';
-import PersonalProfileSetup from './PersonalProfileSetup';
-import logo from '../../../assets/logo.png';
+import { FiMail, FiLock, FiUser } from 'react-icons/fi';
+import Input from '../../components/GeralPurposeComponents/input/Input';
+import Button from '../../components/GeralPurposeComponents/Button/Button';
+import ProfileSetup from './AlunoProfileSetup';
+import logo from '../../assets/logo.png';
 import Swal from 'sweetalert2';
-import { connectionUrl } from '../../../config/api';
+import { connectionUrl } from '../../config/api';
 
-const PersonalRegister: FC = () => {
+const AlunoRegister: FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [showProfileSetup, setShowProfileSetup] = useState(false);
   const [userId, setUserId] = useState('');
@@ -15,10 +15,38 @@ const PersonalRegister: FC = () => {
     name: '',
     email: '',
     password: '',
-    confirmPassword: '',
-    cref: '',
-    specialization: ''
+    confirmPassword: ''
   });
+
+  const validateForm = () => {
+    if (!formData.name.trim()) {
+      Swal.fire('Erro!', 'O nome é obrigatório.', 'error');
+      return false;
+    }
+
+    if (!formData.email.trim()) {
+      Swal.fire('Erro!', 'O email é obrigatório.', 'error');
+      return false;
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(formData.email)) {
+      Swal.fire('Erro!', 'Por favor, insira um email válido.', 'error');
+      return false;
+    }
+
+    if (formData.password.length < 6) {
+      Swal.fire('Erro!', 'A senha deve ter pelo menos 6 caracteres.', 'error');
+      return false;
+    }
+
+    if (formData.password !== formData.confirmPassword) {
+      Swal.fire('Erro!', 'As senhas não coincidem.', 'error');
+      return false;
+    }
+
+    return true;
+  };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -31,43 +59,45 @@ const PersonalRegister: FC = () => {
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     
-    if (formData.password !== formData.confirmPassword) {
-      Swal.fire('Erro!', 'As senhas não coincidem.', 'error');
-      return;
-    }
+    if (!validateForm()) return;
 
     setIsLoading(true);
 
     try {
-      const response = await fetch(`${connectionUrl}/cadastro-personal`, {
+      const response = await fetch(`${connectionUrl}/cadastro`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          name: formData.name,
-          email: formData.email,
+          name: formData.name.trim(),
+          email: formData.email.toLowerCase().trim(),
           password: formData.password,
-          cref: formData.cref,
-          specialization: formData.specialization
         }),
       });
 
+      const data = await response.json();
+
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Erro ao fazer cadastro');
+        if (response.status === 400 && data.error?.includes('já cadastrado')) {
+          throw new Error('Este email já está cadastrado. Por favor, use outro email ou faça login.');
+        }
+        throw new Error(data.error || 'Erro ao fazer cadastro');
       }
 
-      const data = await response.json();
       localStorage.setItem('token', data.token);
       localStorage.setItem('userId', data.user.id);
       localStorage.setItem('userRole', data.user.role);
-      
+
       setUserId(data.user.id);
       setShowProfileSetup(true);
     } catch (error) {
       console.error('Erro ao fazer cadastro:', error);
-      Swal.fire('Erro!', error instanceof Error ? error.message : 'Falha ao realizar cadastro. Tente novamente.', 'error');
+      Swal.fire({
+        title: 'Erro!',
+        text: error instanceof Error ? error.message : 'Falha ao realizar cadastro. Tente novamente.',
+        icon: 'error'
+      });
     } finally {
       setIsLoading(false);
     }
@@ -82,16 +112,17 @@ const PersonalRegister: FC = () => {
       <div className="min-h-screen bg-gray-100 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
         <div className="sm:mx-auto sm:w-full sm:max-w-md">
           <h4 className="text-center text-3xl font-extrabold text-gray-900">
-            Cadastro de Personal Trainer
+            Crie Sua conta como aluno 
           </h4>
           <img src={logo} alt="Logo UGym" className="mx-auto my-4" />
+          
         </div>
 
         <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
           <div className="bg-white py-8 px-4 shadow-lg sm:rounded-lg sm:px-10">
             <form className="space-y-6" onSubmit={handleSubmit}>
               <Input
-                label="Nome Completo"
+                label="Nome"
                 type="text"
                 name="name"
                 value={formData.name}
@@ -102,35 +133,13 @@ const PersonalRegister: FC = () => {
               />
 
               <Input
-                label="Email Profissional"
+                label="Email"
                 type="email"
                 name="email"
                 value={formData.email}
                 onChange={handleChange}
                 icon={<FiMail size={20} />}
-                placeholder="Seu email profissional"
-                required
-              />
-
-              <Input
-                label="CREF"
-                type="text"
-                name="cref"
-                value={formData.cref}
-                onChange={handleChange}
-                icon={<FiBriefcase size={20} />}
-                placeholder="Seu número de CREF"
-                required
-              />
-
-              <Input
-                label="Especialização"
-                type="text"
-                name="specialization"
-                value={formData.specialization}
-                onChange={handleChange}
-                icon={<FiBriefcase size={20} />}
-                placeholder="Sua principal especialização"
+                placeholder="Seu melhor email"
                 required
               />
 
@@ -181,14 +190,16 @@ const PersonalRegister: FC = () => {
                 fullWidth
                 isLoading={isLoading}
               >
-                Criar Conta de Personal
+                {isLoading ? 'Criando conta...' : 'Criar Conta'}
               </Button>
             </form>
+
+    
           </div>
         </div>
       </div>
 
-      <PersonalProfileSetup
+      <ProfileSetup
         isOpen={showProfileSetup}
         onClose={() => setShowProfileSetup(false)}
         onSuccess={handleProfileSetupSuccess}
@@ -198,4 +209,4 @@ const PersonalRegister: FC = () => {
   );
 };
 
-export default PersonalRegister; 
+export default AlunoRegister; 

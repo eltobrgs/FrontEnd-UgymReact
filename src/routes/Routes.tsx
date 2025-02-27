@@ -4,9 +4,9 @@ import { useAuth } from '../contexts/AuthContext';
 import { UserData } from '../contexts/UserContext';
 
 // Páginas de Autenticação
-import Login from '../pages/GeralPurposePages/Auth/Login';
-import AcademiaRegister from '../pages/GeralPurposePages/Auth/AcademiaRegister';
-import AcademiaProfileSetup from '../pages/GeralPurposePages/Auth/AcademiaProfileSetup';
+import Login from '../pages//Auth/Login';
+import AcademiaRegister from '../pages//Auth/AcademiaRegister';
+import AcademiaProfileSetup from '../pages//Auth/AcademiaProfileSetup';
 
 // Rotas específicas
 import UserRoutes from './AlunoRoutes';

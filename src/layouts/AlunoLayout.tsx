@@ -1,7 +1,7 @@
 import { FC, ReactNode } from 'react';
 import { useLocation } from 'react-router-dom';
-import AlunoSidebar from '../components/AlunoComponents/AlunoSidebar/AlunoSidebar';
-import AlunoHeader from '../components/AlunoComponents/AlunoHeader/AlunoHeader';
+import AlunoSidebar from '../components/AlunoComponents/AlunoSidebar';
+import AlunoHeader from '../components/AlunoComponents/AlunoHeader';
 import { UserData } from '../contexts/UserContext';
 
 interface AlunoLayoutProps {

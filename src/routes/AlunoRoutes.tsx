@@ -3,14 +3,14 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import { UserData } from '../contexts/UserContext';
 
 // Páginas do Usuário
-import AlunoDashboard from '../pages/AlunoPages/AlunoDashboard/AlunoDashboard';
+import AlunoDashboard from '../pages/AlunoPages/AlunoDashboard';
 import WorkoutPlan from '../pages/GeralPurposePages/WorkoutPlan/WorkoutPlan';
-import AlunoProfile from '../pages/AlunoPages/AlunoProfile/AlunoProfile';
+import AlunoProfile from '../pages/AlunoPages/AlunoProfile';
 import Reports from '../pages/GeralPurposePages/Reports/Reports';
-import AlunoDietPlan from '../pages/AlunoPages/AlunoDietPlan/AlunoDietPlan';
-import PersonalList from '../pages/PersonalPages/PersonalList/PersonalList';
+import AlunoDietPlan from '../pages/AlunoPages/AlunoDietPlan';
+import PersonalList from '../pages/PersonalPages/PersonalList';
 import Settings from '../pages/GeralPurposePages/Settings/Settings';
-import ProfileSetup from '../pages/GeralPurposePages/Auth/AlunoProfileSetup';
+import ProfileSetup from '../pages/Auth/AlunoProfileSetup';
 
 interface AlunoRoutesProps {
   userData: UserData | null;

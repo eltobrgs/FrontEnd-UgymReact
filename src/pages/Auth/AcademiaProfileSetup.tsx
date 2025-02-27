@@ -1,12 +1,12 @@
 import { FC, useState, FormEvent, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { FaMapMarkerAlt, FaPhone, FaGlobe, FaInstagram, FaFacebook } from 'react-icons/fa';
-import Input from  '../../../components/GeralPurposeComponents/input/Input';
-import Button from '../../../components/GeralPurposeComponents/Button/Button';
-import { useUser } from '../../../contexts/UserContext';
-import { useAuth } from '../../../contexts/AuthContext';
+import Input from '../../components/GeralPurposeComponents/input/Input';
+import Button from '../../components/GeralPurposeComponents/Button/Button';
+import { useUser } from '../../contexts/UserContext';
+import { useAuth } from '../../contexts/AuthContext';
 import Swal from 'sweetalert2';
-import { connectionUrl } from '../../../config/api';
+import { connectionUrl } from '../../config/api';
 
 interface AcademiaProfileFormData {
   cnpj: string;

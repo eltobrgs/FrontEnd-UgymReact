@@ -14,11 +14,11 @@ import {
   FaBirthdayCake,
   FaVenusMars
 } from 'react-icons/fa';
-import Button from '../../../components/GeralPurposeComponents/Button/Button';
+import Button from '../../components/GeralPurposeComponents/Button/Button';
 import Swal from 'sweetalert2';
-import { useUser } from '../../../contexts/UserContext';
-import { connectionUrl } from '../../../config/api';
-import PersonalProfileSetup from '../../GeralPurposePages/Auth/PersonalProfileSetup';
+import { useUser } from '../../contexts/UserContext';
+import { connectionUrl } from '../../config/api';
+import PersonalProfileSetup from '../Auth/PersonalProfileSetup';
 
 interface PersonalData {
   user: {

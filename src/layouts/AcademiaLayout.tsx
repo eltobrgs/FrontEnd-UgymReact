@@ -1,7 +1,7 @@
 import { FC, ReactNode } from 'react';
 import { useLocation } from 'react-router-dom';
-import AcademiaHeader from '../components/AcademiaComponents/AcademiaHeader/AcademiaHeader';
-import AcademiaSidebar from '../components/AcademiaComponents/AcademiaSidebar/AcademiaSidebar';
+import AcademiaHeader from '../components/AcademiaComponents/AcademiaHeader';
+import AcademiaSidebar from '../components/AcademiaComponents/AcademiaSidebar';
 import { UserData } from '../contexts/UserContext';
 
 interface AcademiaLayoutProps {

@@ -1,8 +1,8 @@
 import { FC, useState, useEffect } from 'react';
 import { FaSearch } from 'react-icons/fa';
 import Swal from 'sweetalert2';
-import { connectionUrl } from '../../../config/api';
-import PersonalCard from '../../../components/PersonalComponents/PersonalCard/PersonalCard';
+import { connectionUrl } from '../../config/api';
+import PersonalCard from '../../components/PersonalComponents/PersonalCard';
 interface Personal {
   id: number;
   user: {
