@@ -16,6 +16,7 @@ const PersonalLayout: FC<PersonalLayoutProps> = ({
   userData, 
   isSidebarOpen, 
   onToggleSidebar 
+  
 }) => {
   const location = useLocation();
   const isAuthRoute = location.pathname.startsWith('/auth');
