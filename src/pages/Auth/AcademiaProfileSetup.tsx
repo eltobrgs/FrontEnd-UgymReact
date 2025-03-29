@@ -6,7 +6,7 @@ import Button from '../../components/GeralPurposeComponents/Button/Button';
 import { useUser } from '../../contexts/UserContext';
 import { useAuth } from '../../contexts/AuthContext';
 import Swal from 'sweetalert2';
-import { connectionUrl } from '../../config/api';
+import { connectionUrl } from '../../config/connection';
 
 interface AcademiaProfileFormData {
   cnpj: string;

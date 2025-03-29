@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { useUser } from '../../contexts/UserContext';
 import { FaUsers, FaUserTie, FaDumbbell, FaCalendarAlt, FaMoneyBillWave } from 'react-icons/fa';
 import { IconType } from 'react-icons';
-import { connectionUrl } from '../../config/api';
+import { connectionUrl } from '../../config/connection';
 
 interface DashboardStats {
   totalStudents: number;

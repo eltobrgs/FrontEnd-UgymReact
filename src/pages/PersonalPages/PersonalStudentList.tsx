@@ -2,7 +2,7 @@ import { FC, useState, useEffect } from 'react';
 import { FaSearch } from 'react-icons/fa';
 import StudentCard from '../../components/GeralPurposeComponents/StudentCard/StudentCard';
 import Swal from 'sweetalert2';
-import { connectionUrl } from '../../config/api';
+import { connectionUrl } from '../../config/connection';
 
 interface Student {
   id: number;

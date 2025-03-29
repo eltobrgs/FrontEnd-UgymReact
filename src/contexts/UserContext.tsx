@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, ReactNode, useEffect } from 'react';
-import { connectionUrl } from '../config/api';
+import { connectionUrl } from '../config/connection';
 
 interface Stats {
   steps: number;

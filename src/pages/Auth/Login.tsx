@@ -7,7 +7,7 @@ import logo from '../../assets/logo.png';
 import { useAuth } from '../../contexts/AuthContext';
 import { useUser } from '../../contexts/UserContext';
 import Swal from 'sweetalert2';
-import { connectionUrl } from '../../config/api';
+import { connectionUrl } from '../../config/connection';
 
 const Login: FC = () => {
   const navigate = useNavigate();

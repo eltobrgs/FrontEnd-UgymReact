@@ -17,7 +17,7 @@ import {
 import Button from '../../components/GeralPurposeComponents/Button/Button';
 import Swal from 'sweetalert2';
 import { useUser } from '../../contexts/UserContext';
-import { connectionUrl } from '../../config/api';
+import { connectionUrl } from '../../config/connection';
 import PersonalProfileSetup from '../AcademiaPages/PersonalProfileSetup';
 
 interface PersonalData {

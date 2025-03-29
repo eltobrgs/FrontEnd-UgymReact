@@ -4,7 +4,7 @@ import Input from '../../components/GeralPurposeComponents/input/Input';
 import Button from '../../components/GeralPurposeComponents/Button/Button';
 import Modal from '../../components/GeralPurposeComponents/Modal/Modal';
 import Swal from 'sweetalert2';
-import { connectionUrl } from '../../config/api';
+import { connectionUrl } from '../../config/connection';
 
 interface PersonalProfileSetupModalProps {
   isOpen: boolean;
