@@ -64,6 +64,7 @@ const AcademiaPersonalList = () => {
 
   useEffect(() => {
     fetchPersonals();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userData]);
 
   useEffect(() => {
