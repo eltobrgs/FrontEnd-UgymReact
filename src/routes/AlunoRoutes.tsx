@@ -8,9 +8,9 @@ import WorkoutPlan from '../pages/GeralPurposePages/WorkoutPlan/WorkoutPlan';
 import AlunoProfile from '../pages/AlunoPages/AlunoProfile';
 import Reports from '../pages/GeralPurposePages/Reports/Reports';
 import AlunoDietPlan from '../pages/AlunoPages/AlunoDietPlan';
-import PersonalList from '../pages/PersonalPages/PersonalList';
+import AlunoPersonalList from '../pages/AlunoPages/AlunoPersonalList';
 import Settings from '../pages/GeralPurposePages/Settings/Settings';
-import ProfileSetup from '../pages/Auth/AlunoProfileSetup';
+import ProfileSetup from '../pages/AcademiaPages/AlunoProfileSetup';
 
 interface AlunoRoutesProps {
   userData: UserData | null;
@@ -58,7 +58,7 @@ const AlunoRoutes: FC<AlunoRoutesProps> = ({ userData }) => {
       />
       <Route 
         path="/personals" 
-        element={<PersonalList />} 
+        element={<AlunoPersonalList />} 
       />
       <Route 
         path="/settings" 

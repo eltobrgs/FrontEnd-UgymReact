@@ -11,6 +11,8 @@ interface ProfileSetupModalProps {
   onClose: () => void;
   onSuccess: () => void;
   userId: string;
+  academiaId?: number | null;
+  temporaryToken?: string | null;
   initialData?: {
     birthDate: string;
     gender: string;
@@ -25,7 +27,15 @@ interface ProfileSetupModalProps {
   };
 }
 
-const AlunoProfileSetup: FC<ProfileSetupModalProps> = ({ isOpen, onClose, onSuccess, userId, initialData }) => {
+const AlunoProfileSetup: FC<ProfileSetupModalProps> = ({ 
+  isOpen, 
+  onClose, 
+  onSuccess, 
+  userId, 
+  academiaId, 
+  temporaryToken,
+  initialData 
+}) => {
   const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
     birthDate: initialData?.birthDate || '',
@@ -53,7 +63,9 @@ const AlunoProfileSetup: FC<ProfileSetupModalProps> = ({ isOpen, onClose, onSucc
     setIsLoading(true);
     
     try {
-      const token = localStorage.getItem('token');
+      // Se temos um token temporário (caso de cadastro por academia), usamos ele
+      // Caso contrário, usamos o token normal do localStorage (caso de auto-cadastro)
+      const token = temporaryToken || localStorage.getItem('token');
       
       if (!userId || !token) {
         throw new Error('Dados de autenticação não encontrados');
@@ -62,7 +74,8 @@ const AlunoProfileSetup: FC<ProfileSetupModalProps> = ({ isOpen, onClose, onSucc
       const dataToSend = {
         ...formData,
         birthDate: formData.birthDate ? new Date(formData.birthDate).toLocaleDateString('pt-BR') : '',
-        userId: parseInt(userId)
+        userId: parseInt(userId),
+        academiaId: academiaId || null
       };
 
       const response = await fetch(`${connectionUrl}/preferences`, {

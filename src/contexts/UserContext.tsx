@@ -201,6 +201,10 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  useEffect(() => {
+    console.log('Dados do usuário no contexto:', userData);
+  }, [userData]);
+
   return (
     <UserContext.Provider value={{ userData, setUserData, fetchUserData }}>
       {children}

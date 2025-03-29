@@ -1,8 +1,8 @@
 import { FC, useState, useEffect } from 'react';
 import { FaSearch } from 'react-icons/fa';
-import StudentCard from '../../../components/GeralPurposeComponents/StudentCard/StudentCard';
+import StudentCard from '../../components/GeralPurposeComponents/StudentCard/StudentCard';
 import Swal from 'sweetalert2';
-import { connectionUrl } from '../../../config/api';
+import { connectionUrl } from '../../config/api';
 
 interface Student {
   id: number;
@@ -15,17 +15,23 @@ interface Student {
   imageUrl?: string;
 }
 
-const ExpecStudentList: FC = () => {
+const AcademiaStudentList: FC = () => {
   const [students, setStudents] = useState<Student[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [filteredStudents, setFilteredStudents] = useState<Student[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const fetchStudents = async () => {
+      setIsLoading(true);
       try {
         const token = localStorage.getItem('token');
-        const response = await fetch(`${connectionUrl}/my-students`, { // Rota para buscar alunos vinculados ao personal
+        if (!token) {
+          throw new Error('Token não encontrado');
+        }
+
+        // Este endpoint já foi modificado no backend para filtrar alunos da mesma academia que o usuário logado
+        const response = await fetch(`${connectionUrl}/all-students`, {
           method: 'GET',
           headers: {
             'Authorization': `Bearer ${token}`,
@@ -34,12 +40,25 @@ const ExpecStudentList: FC = () => {
         });
 
         if (!response.ok) {
-          throw new Error('Erro ao buscar lista de alunos');
+          throw new Error('Falha ao buscar alunos');
         }
 
         const data = await response.json();
-        setStudents(data);
-        setFilteredStudents(data);
+        
+        // Garantir que todos os campos necessários existam
+        const processedData = data.map((student: Student) => ({
+          id: student.id || 0,
+          name: student.name || 'Nome não informado',
+          age: student.age || 'N/A',
+          weight: student.weight || 'Não informado',
+          height: student.height || 'Não informado',
+          goal: student.goal || 'Não informado',
+          trainingTime: student.trainingTime || 'Iniciante',
+          imageUrl: student.imageUrl || undefined
+        }));
+        
+        setStudents(processedData);
+        setFilteredStudents(processedData);
       } catch (error) {
         console.error('Erro ao buscar alunos:', error);
         Swal.fire('Erro!', 'Não foi possível carregar a lista de alunos', 'error');
@@ -72,10 +91,10 @@ const ExpecStudentList: FC = () => {
       <div className="max-w-7xl mx-auto">
         <div className="text-center mb-12">
           <h1 className="text-4xl font-extrabold text-gray-900 mb-4">
-            Meus Alunos Específicos
+             Membros da Academia
           </h1>
           <p className="text-xl text-gray-600">
-            Gerencie e acompanhe o progresso dos seus alunos específicos
+            Gerencie e acompanhe os alunos de sua academia
           </p>
         </div>
 
@@ -120,4 +139,4 @@ const ExpecStudentList: FC = () => {
   );
 };
 
-export default ExpecStudentList;
+export default AcademiaStudentList; 

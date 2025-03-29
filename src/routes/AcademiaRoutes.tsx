@@ -6,10 +6,10 @@ import { UserData } from '../contexts/UserContext';
 import AcademiaDashboard from '../pages/AcademiaPages/AcademiaDashboard';
 import AcademiaProfile from '../pages/AcademiaPages/AcademiaProfile';
 import AcademiaProfileSetup from '../pages/Auth/AcademiaProfileSetup';
-import AcademiaStudents from '../pages/GeralPurposePages/GeralStudentList/GeralStudentList';
-import PersonalRegister from '../pages/Auth/PersonalRegister';
-import StudentRegister from '../pages/Auth/AlunoRegister';
-import PersonalList from '../pages/PersonalPages/PersonalList';
+import AcademiaStudentList from '../pages/AcademiaPages/AcademiaStudentList';
+import PersonalRegister from '../pages/AcademiaPages/PersonalRegister';
+import StudentRegister from '../pages/AcademiaPages/AlunoRegister';
+import AcademiaPersonalList from '../pages/AcademiaPages/AcademiaPersonalList';
 import Settings from '../pages/GeralPurposePages/Settings/Settings';
 
 
@@ -30,8 +30,8 @@ const AcademiaRoutes: FC<AcademiaRoutesProps> = ({ userData }) => {
         path="/edit-academia-profile" 
         element={<AcademiaProfileSetup />} 
       />
-      <Route path="/students" element={<AcademiaStudents />} />
-      <Route path="/personals" element={<PersonalList />} />
+      <Route path="/students" element={<AcademiaStudentList />} />
+      <Route path="/personals" element={<AcademiaPersonalList />} />
       <Route path="/PersonalRegister" element={<PersonalRegister />} />
       <Route path="/StudentRegister" element={<StudentRegister />} />
       <Route path="/settings" element={<Settings userName={userData.name || ''} />} />

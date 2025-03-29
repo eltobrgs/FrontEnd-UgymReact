@@ -15,7 +15,7 @@ import {
   FaClipboardList
 } from 'react-icons/fa';
 import { useUser } from '../../contexts/UserContext';
-import ProfileSetup from '../Auth/AlunoProfileSetup';
+import ProfileSetup from '../AcademiaPages/AlunoProfileSetup';
 
 interface AlunoProfileProps {
   userName: string;

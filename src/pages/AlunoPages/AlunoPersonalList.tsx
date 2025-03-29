@@ -3,6 +3,7 @@ import { FaSearch } from 'react-icons/fa';
 import Swal from 'sweetalert2';
 import { connectionUrl } from '../../config/api';
 import PersonalCard from '../../components/PersonalComponents/PersonalCard';
+
 interface Personal {
   id: number;
   user: {
@@ -14,7 +15,7 @@ interface Personal {
   pricePerHour: string;
 }
 
-const PersonalList: FC = () => {
+const AlunoPersonalList: FC = () => {
   const [personals, setPersonals] = useState<Personal[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -23,14 +24,24 @@ const PersonalList: FC = () => {
   useEffect(() => {
     const fetchPersonals = async () => {
       try {
-        const response = await fetch(`${connectionUrl}/personals`);
+        // Obter o token para usar endpoint privado que filtra por academia
+        const token = localStorage.getItem('token');
+        if (!token) {
+          throw new Error('Token não encontrado');
+        }
+        
+        // Utilizar o endpoint privado que já filtra por academia automaticamente
+        const response = await fetch(`${connectionUrl}/personals`, {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
         
         if (!response.ok) {
           throw new Error('Erro ao buscar lista de personais');
         }
 
         const data = await response.json();
-        console.log('Dados recebidos:', data); // Log para depuração
         
         // Transformar os dados para garantir que eles correspondam à interface
         const formattedData = data.map((item: { id: number; name: string; specializations: string[]; yearsOfExperience: string; workLocation: string; pricePerHour: string; }) => ({
@@ -130,4 +141,4 @@ const PersonalList: FC = () => {
   );
 };
 
-export default PersonalList; 
+export default AlunoPersonalList; 

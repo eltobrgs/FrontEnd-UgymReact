@@ -11,6 +11,8 @@ interface PersonalProfileSetupModalProps {
   onClose: () => void;
   onSuccess: () => void;
   userId: string;
+  academiaId?: number | null;
+  temporaryToken?: string | null;
   initialData?: {
     birthDate: string;
     gender: string;
@@ -27,7 +29,15 @@ interface PersonalProfileSetupModalProps {
   };
 }
 
-const PersonalProfileSetup: FC<PersonalProfileSetupModalProps> = ({ isOpen, onClose, onSuccess, userId, initialData }) => {
+const PersonalProfileSetup: FC<PersonalProfileSetupModalProps> = ({
+  isOpen,
+  onClose,
+  onSuccess,
+  userId,
+  academiaId,
+  temporaryToken,
+  initialData
+}) => {
   const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
     birthDate: initialData?.birthDate || '',
@@ -70,7 +80,9 @@ const PersonalProfileSetup: FC<PersonalProfileSetupModalProps> = ({ isOpen, onCl
     setIsLoading(true);
 
     try {
-      const token = localStorage.getItem('token');
+      // Usar token temporário se disponível, caso contrário usar o token normal
+      const token = temporaryToken || localStorage.getItem('token');
+      
       if (!token || !userId) {
         throw new Error('Dados de autenticação não encontrados');
       }
@@ -86,7 +98,8 @@ const PersonalProfileSetup: FC<PersonalProfileSetupModalProps> = ({ isOpen, onCl
           birthDate: formData.birthDate ? new Date(formData.birthDate).toLocaleDateString('pt-BR') : '',
           specializations: formData.specializations.split(',').map(s => s.trim()),
           certifications: formData.certifications.split(',').map(c => c.trim()),
-          languages: formData.languages.split(',').map(l => l.trim())
+          languages: formData.languages.split(',').map(l => l.trim()),
+          academiaId: academiaId || null
         }),
       });
 
