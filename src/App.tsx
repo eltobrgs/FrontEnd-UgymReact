@@ -20,7 +20,40 @@ const AppContent = () => {
   const { isAuthenticated, isLoading: authLoading } = useAuth();
   const { userData, setUserData } = useUser();
   const [isLayoutLoading, setIsLayoutLoading] = useState(true);
+  
+  // Inicializamos a sidebar como fechada por padrão
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
+  useEffect(() => {
+    // Configuração inicial da sidebar baseada no tamanho da tela
+    const handleInitialScreenSize = () => {
+      if (window.innerWidth >= 1024) {
+        setIsSidebarOpen(true);
+      } else {
+        setIsSidebarOpen(false);
+      }
+    };
+
+    // Executar o ajuste inicial quando o componente montar
+    handleInitialScreenSize();
+
+    // Configurar evento de resize para ajustar a sidebar quando a tela for redimensionada
+    const handleResize = () => {
+      if (window.innerWidth >= 1024) {
+        setIsSidebarOpen(true);
+      } else {
+        setIsSidebarOpen(false);
+      }
+    };
+
+    // Adicionar listener de resize
+    window.addEventListener('resize', handleResize);
+
+    // Cleanup do listener quando o componente for desmontado
+    return () => {
+      window.removeEventListener('resize', handleResize);
+    };
+  }, []);
 
   useEffect(() => {
     if (!isAuthenticated) {

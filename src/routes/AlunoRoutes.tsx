@@ -4,12 +4,12 @@ import { UserData } from '../contexts/UserContext';
 
 // Páginas do Usuário
 import AlunoDashboard from '../pages/AlunoPages/AlunoDashboard';
-import WorkoutPlan from '../pages/GeralPurposePages/WorkoutPlan/WorkoutPlan';
+import WorkoutPlan from '../pages/AlunoPages/AlunoTreino';
 import AlunoProfile from '../pages/AlunoPages/AlunoProfile';
-import Reports from '../pages/GeralPurposePages/Reports/Reports';
+import AlunoReports from '../pages/AlunoPages/AlunoReports';
 import AlunoDietPlan from '../pages/AlunoPages/AlunoDietPlan';
 import AlunoPersonalList from '../pages/AlunoPages/AlunoPersonalList';
-import Settings from '../pages/GeralPurposePages/Settings/Settings';
+import Settings from '../pages/GeralPurposePages/Settings';
 import ProfileSetup from '../pages/AcademiaPages/AlunoProfileSetup';
 
 interface AlunoRoutesProps {
@@ -30,7 +30,7 @@ const AlunoRoutes: FC<AlunoRoutesProps> = ({ userData }) => {
       />
       <Route 
         path="/workout-plan" 
-        element={<WorkoutPlan userName={userData?.name || 'Usuário'} />} 
+        element={<WorkoutPlan/>} 
       />
       <Route 
         path="/profile" 
@@ -50,7 +50,7 @@ const AlunoRoutes: FC<AlunoRoutesProps> = ({ userData }) => {
       />
       <Route 
         path="/reports" 
-        element={<Reports userName={userData?.name || 'Usuário'} />} 
+        element={<AlunoReports userName={userData?.name || 'Usuário'} />} 
       />
       <Route 
         path="/diet-plan" 

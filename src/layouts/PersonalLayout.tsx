@@ -38,7 +38,8 @@ const PersonalLayout: FC<PersonalLayoutProps> = ({
           userName={userData?.name || 'Personal'}
           userImage={userData?.image || 'https://via.placeholder.com/50'}
         />
-        <main className="flex-1 overflow-x-hidden overflow-y-auto bg-gray-50 p-4">
+        <main className="flex-1 overflow-x-hidden overflow-y-auto bg-gray-50 p-4 pt-6 md:p-6 lg:p-8">
+          <div className="lg:hidden h-10 md:h-6"></div>
           {children}
         </main>
       </div>

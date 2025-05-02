@@ -25,6 +25,9 @@ const AlunoRegister: FC = () => {
     // Obtém o ID da academia a partir do usuário logado
     if (userData?.academia) {
       setAcademiaId(userData.academia.id);
+      console.log("Academia ID encontrado:", userData.academia.id);
+    } else {
+      console.log("Não foi possível encontrar o ID da academia");
     }
   }, [userData]);
 
@@ -74,7 +77,9 @@ const AlunoRegister: FC = () => {
     setIsLoading(true);
 
     try {
-      const response = await fetch(`${connectionUrl}/cadastro`, {
+      console.log("Enviando dados com academiaId:", academiaId);
+      
+      const response = await fetch(`${connectionUrl}/aluno/cadastrar`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

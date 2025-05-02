@@ -76,7 +76,7 @@ const AcademiaProfileSetup: FC<AcademiaProfileSetupProps> = ({ onSuccess, onClos
           throw new Error('Dados de autenticação não encontrados');
         }
 
-        const response = await fetch(`${connectionUrl}/academia-profile`, {
+        const response = await fetch(`${connectionUrl}/academia/perfil`, {
           headers: {
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json'
@@ -159,7 +159,7 @@ const AcademiaProfileSetup: FC<AcademiaProfileSetupProps> = ({ onSuccess, onClos
 
       console.log('Dados a serem enviados:', dadosFormatados);
 
-      const response = await fetch(`${connectionUrl}/academia-profile`, {
+      const response = await fetch(`${connectionUrl}/academia/perfil`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

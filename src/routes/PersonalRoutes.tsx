@@ -7,7 +7,9 @@ import PersonalDashboard from '../pages/PersonalPages/PersonalDashboard';
 import PersonalProfile from '../pages/PersonalPages/PersonalProfile';
 import PersonalStudentList from '../pages/PersonalPages/PersonalStudentList';
 import LinkedStudentList from '../pages/PersonalPages/LinkedStudentList';
-import Settings from '../pages/GeralPurposePages/Settings/Settings';
+import PersonalGerenciaTreino from '../pages/PersonalPages/PersonalGerenciaTreino';
+import PersonalGerenciaReports from '../pages/PersonalPages/PersonalGerenciaReports';
+import Settings from '../pages/GeralPurposePages/Settings';
 
 interface PersonalRoutesProps {
   userData: UserData | null;
@@ -21,6 +23,8 @@ const PersonalRoutes: FC<PersonalRoutesProps> = ({ userData }) => {
       <Route path="/my-students" element={<LinkedStudentList />} />
       <Route path="/settings" element={<Settings userName={userData?.name || ''} />} />
       <Route path="/personal-profile" element={<PersonalProfile />} />
+      <Route path="/personal-gerencia-treino" element={<PersonalGerenciaTreino />} />
+      <Route path="/personal-gerencia-reports" element={<PersonalGerenciaReports />} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );

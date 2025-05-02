@@ -58,33 +58,42 @@ const AlunoProfileSetup: FC<ProfileSetupModalProps> = ({
     }));
   };
 
-  const handleSubmit = async (e: FormEvent) => {
+  const handleFormSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     
     try {
-      // Se temos um token temporário (caso de cadastro por academia), usamos ele
-      // Caso contrário, usamos o token normal do localStorage (caso de auto-cadastro)
+      // Usar token temporário se disponível, caso contrário usar o token normal
       const token = temporaryToken || localStorage.getItem('token');
       
-      if (!userId || !token) {
-        throw new Error('Dados de autenticação não encontrados');
+      if (!token) {
+        throw new Error('Token não encontrado');
       }
 
+      console.log("Configurando perfil do aluno. AcademiaId:", academiaId);
+      console.log("Token utilizado:", token.substring(0, 15) + "...");
+      console.log("UserId:", userId);
+
+      // Preparar dados para envio incluindo o ID do aluno quando necessário
       const dataToSend = {
         ...formData,
-        birthDate: formData.birthDate ? new Date(formData.birthDate).toLocaleDateString('pt-BR') : '',
-        userId: parseInt(userId),
-        academiaId: academiaId || null
+        academiaId: academiaId // Garantir que o academiaId seja incluído
       };
 
-      const response = await fetch(`${connectionUrl}/preferences`, {
+      // Se o userId for fornecido e for diferente do usuário logado, adicionar como alunoId
+      const userData = JSON.parse(localStorage.getItem('user') || '{}');
+      if (userId && userData.id !== userId) {
+        (dataToSend as any).alunoId = userId;
+      }
+
+      // Enviar dados para a API
+      const response = await fetch(`${connectionUrl}/aluno/preferencias`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
+          'Authorization': `Bearer ${token}`
         },
-        body: JSON.stringify(dataToSend),
+        body: JSON.stringify(dataToSend)
       });
 
       if (!response.ok) {
@@ -126,7 +135,7 @@ const AlunoProfileSetup: FC<ProfileSetupModalProps> = ({
           Precisamos de algumas informações para personalizar sua experiência
         </p>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={handleFormSubmit} className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <Input
               label="Data de Nascimento"

@@ -22,7 +22,7 @@ const PersonalDashboard: FC = () => {
     const fetchStudents = async () => {
       try {
         const token = localStorage.getItem('token');
-        const response = await fetch(`${connectionUrl}/students`, {
+        const response = await fetch(`${connectionUrl}/alunos/listar`, {
           headers: {
             'Authorization': `Bearer ${token}`
           }

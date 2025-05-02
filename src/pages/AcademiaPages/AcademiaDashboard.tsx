@@ -29,7 +29,7 @@ const AcademiaDashboard: FC = () => {
       try {
         setLoading(true);
         const token = localStorage.getItem('token');
-        const response = await fetch(`${connectionUrl}/academia/dashboard`, {
+        const response = await fetch(`${connectionUrl}/academia/perfil`, {
           headers: {
             'Authorization': `Bearer ${token}`
           }

@@ -12,6 +12,10 @@ interface Personal {
   email: string;
   cref: string;
   specialization: string;
+  yearsOfExperience?: string;
+  workLocation?: string;
+  pricePerHour?: string;
+  specializations?: string[];
 }
 
 const AcademiaPersonalList = () => {
@@ -36,10 +40,21 @@ const AcademiaPersonalList = () => {
       console.log('ID da academia:', academiaId);
       
       // Usar o endpoint público com o parâmetro academiaId
-      const url = `${connectionUrl}/personals?academiaId=${academiaId}`;
+      const url = `${connectionUrl}/personais/listar?academiaId=${academiaId}`;
       console.log('Buscando personais no URL:', url);
       
-      const response = await fetch(url);
+      // Obter o token de autenticação do localStorage
+      const token = localStorage.getItem('token');
+      if (!token) {
+        throw new Error('Token de autenticação não encontrado');
+      }
+      
+      // Incluir o token no cabeçalho Authorization
+      const response = await fetch(url, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
 
       console.log('Status da resposta:', response.status);
       
@@ -127,10 +142,12 @@ const AcademiaPersonalList = () => {
               key={personal.id} 
               id={personal.id}
               name={personal.name}
-              specializations={[personal.specialization]}
-              yearsOfExperience="N/A"
-              workLocation="N/A"
-              pricePerHour="N/A"
+              specializations={personal.specializations || []}
+              specialization={personal.specialization || ""}
+              yearsOfExperience={personal.yearsOfExperience || "N/A"}
+              workLocation={personal.workLocation || "N/A"}
+              pricePerHour={personal.pricePerHour || "N/A"}
+              cref={personal.cref || "Não informado"}
             />
           ))}
         </div>

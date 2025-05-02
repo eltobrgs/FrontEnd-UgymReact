@@ -37,7 +37,7 @@ const AcademiaRegister: FC = () => {
     setIsLoading(true);
 
     try {
-      const response = await fetch(`${connectionUrl}/cadastro-academia`, {
+      const response = await fetch(`${connectionUrl}/academia/cadastrar`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

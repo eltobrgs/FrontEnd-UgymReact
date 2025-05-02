@@ -61,7 +61,7 @@ const PersonalProfile: FC = () => {
         throw new Error('Usuário não autenticado');
       }
 
-      const response = await fetch(`${connectionUrl}/personal/${profileId}`, {
+      const response = await fetch(`${connectionUrl}/personal/detalhes/${profileId}`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'

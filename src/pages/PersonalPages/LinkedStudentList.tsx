@@ -23,9 +23,14 @@ const ExpecStudentList: FC = () => {
 
   useEffect(() => {
     const fetchStudents = async () => {
+      setIsLoading(true);
       try {
         const token = localStorage.getItem('token');
-        const response = await fetch(`${connectionUrl}/my-students`, { // Rota para buscar alunos vinculados ao personal
+        if (!token) {
+          throw new Error('Token não encontrado');
+        }
+
+        const response = await fetch(`${connectionUrl}/personal/meus-alunos`, {
           method: 'GET',
           headers: {
             'Authorization': `Bearer ${token}`,

@@ -49,7 +49,7 @@ const PersonalRegister: FC = () => {
     setIsLoading(true);
 
     try {
-      const response = await fetch(`${connectionUrl}/cadastro-personal`, {
+      const response = await fetch(`${connectionUrl}/personal/cadastrar`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

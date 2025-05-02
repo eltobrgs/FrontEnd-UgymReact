@@ -2,11 +2,11 @@ import { FC, useState } from 'react';
 import { FaUser, FaBell, FaLock, FaPalette, FaLanguage, FaQuestionCircle, FaSignOutAlt } from 'react-icons/fa';
 import { Switch } from '@headlessui/react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../../../contexts/AuthContext';
-import { useUser } from '../../../contexts/UserContext';
+import { useAuth } from '../../contexts/AuthContext';
+import { useUser } from '../../contexts/UserContext';
 import Swal from 'sweetalert2';
-import ProfileSetup from '../../AcademiaPages/AlunoProfileSetup';
-import PersonalProfileSetup from '../../AcademiaPages/PersonalProfileSetup';
+import ProfileSetup from '../AcademiaPages/AlunoProfileSetup';
+import PersonalProfileSetup from '../AcademiaPages/PersonalProfileSetup';
 
 interface SettingsProps {
   userName: string;

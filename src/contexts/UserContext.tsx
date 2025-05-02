@@ -85,6 +85,7 @@ const UserContext = createContext<UserContextType | undefined>(undefined);
 
 export const UserProvider = ({ children }: { children: ReactNode }) => {
   const [userData, setUserData] = useState<UserData | null>(null);
+  const [_loading, _setLoading] = useState(false);
 
   const calculateIMC = (weight: string, height: string): number => {
     const weightNum = parseFloat(weight);
@@ -104,7 +105,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
       }
 
       // Buscar dados do usuário
-      const userResponse = await fetch(`${connectionUrl}/me`, {
+      const userResponse = await fetch(`${connectionUrl}/perfil`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -118,7 +119,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
 
       // Buscar preferências do usuário se for ALUNO
       if (userData.role === 'ALUNO') {
-        const preferencesResponse = await fetch(`${connectionUrl}/preferences`, {
+        const preferencesResponse = await fetch(`${connectionUrl}/aluno/preferencias`, {
           headers: {
             'Authorization': `Bearer ${token}`
           }
@@ -153,7 +154,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
       } 
       // Buscar dados do personal se for PERSONAL
       else if (userData.role === 'PERSONAL') {
-        const personalResponse = await fetch(`${connectionUrl}/personal/${userData.id}`, {
+        const personalResponse = await fetch(`${connectionUrl}/personal/detalhes/${userData.id}`, {
           headers: {
             'Authorization': `Bearer ${token}`
           }
@@ -171,7 +172,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
       }
       // Buscar dados da academia se for ACADEMIA
       else if (userData.role === 'ACADEMIA') {
-        const academiaResponse = await fetch(`${connectionUrl}/academia-profile`, {
+        const academiaResponse = await fetch(`${connectionUrl}/academia/perfil`, {
           headers: {
             'Authorization': `Bearer ${token}`
           }

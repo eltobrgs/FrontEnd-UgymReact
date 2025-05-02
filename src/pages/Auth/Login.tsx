@@ -11,7 +11,7 @@ import { connectionUrl } from '../../config/connection';
 
 const Login: FC = () => {
   const navigate = useNavigate();
-  const { setIsAuthenticated } = useAuth();
+  const { setIsAuthenticated, setToken } = useAuth();
   const { fetchUserData } = useUser();
   const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
@@ -32,7 +32,7 @@ const Login: FC = () => {
     setIsLoading(true);
     
     try {
-      const response = await fetch(`${connectionUrl}/login`, {
+      const response = await fetch(`${connectionUrl}/entrar`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -46,6 +46,7 @@ const Login: FC = () => {
 
       const data = await response.json();
       localStorage.setItem('token', data.token);
+      setToken(data.token);
       setIsAuthenticated(true);
       await fetchUserData();
       Swal.fire('Sucesso!', 'Login realizado com sucesso!', 'success');

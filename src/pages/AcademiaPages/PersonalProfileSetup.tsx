@@ -87,7 +87,7 @@ const PersonalProfileSetup: FC<PersonalProfileSetupModalProps> = ({
         throw new Error('Dados de autenticação não encontrados');
       }
 
-      const response = await fetch(`${connectionUrl}/personal-preferences`, {
+      const response = await fetch(`${connectionUrl}/personal/preferencias`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

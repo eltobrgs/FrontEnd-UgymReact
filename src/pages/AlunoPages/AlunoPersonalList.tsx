@@ -3,6 +3,7 @@ import { FaSearch } from 'react-icons/fa';
 import Swal from 'sweetalert2';
 import { connectionUrl } from '../../config/connection';
 import PersonalCard from '../../components/PersonalComponents/PersonalCard';
+import { useUser } from '../../contexts/UserContext';
 
 interface Personal {
   id: number;
@@ -15,7 +16,16 @@ interface Personal {
   pricePerHour: string;
 }
 
+interface PreferenciasAluno {
+  academiaId?: number;
+}
+
+interface PreferenciasAlunoExtended extends PreferenciasAluno {
+  academiaId?: number;
+}
+
 const AlunoPersonalList: FC = () => {
+  const { userData } = useUser();
   const [personals, setPersonals] = useState<Personal[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -24,14 +34,24 @@ const AlunoPersonalList: FC = () => {
   useEffect(() => {
     const fetchPersonals = async () => {
       try {
-        // Obter o token para usar endpoint privado que filtra por academia
+        // Obter o token para usar endpoint privado
         const token = localStorage.getItem('token');
         if (!token) {
           throw new Error('Token não encontrado');
         }
         
-        // Utilizar o endpoint privado que já filtra por academia automaticamente
-        const response = await fetch(`${connectionUrl}/personals`, {
+        // Verificar se o aluno tem uma academia associada
+        if (!(userData?.preferenciasAluno as PreferenciasAlunoExtended)?.academiaId) {
+          console.log('Aluno sem academia associada');
+          setPersonals([]);
+          setFilteredPersonals([]);
+          setIsLoading(false);
+          return;
+        }
+        
+        // Usar o endpoint com o parâmetro academiaId para filtrar por academia
+        const academiaId = userData?.preferenciasAluno && (userData.preferenciasAluno as PreferenciasAlunoExtended).academiaId;
+        const response = await fetch(`${connectionUrl}/personais/listar?academiaId=${academiaId}`, {
           headers: {
             'Authorization': `Bearer ${token}`
           }
@@ -42,6 +62,7 @@ const AlunoPersonalList: FC = () => {
         }
 
         const data = await response.json();
+        console.log('Personais obtidos:', data);
         
         // Transformar os dados para garantir que eles correspondam à interface
         const formattedData = data.map((item: { id: number; name: string; specializations: string[]; yearsOfExperience: string; workLocation: string; pricePerHour: string; }) => ({
@@ -68,8 +89,11 @@ const AlunoPersonalList: FC = () => {
       }
     };
 
-    fetchPersonals();
-  }, []);
+    // Só buscar personais quando os dados do usuário estiverem disponíveis
+    if (userData) {
+      fetchPersonals();
+    }
+  }, [userData]);
 
   useEffect(() => {
     const filtered = personals.filter(personal => 
@@ -116,25 +140,35 @@ const AlunoPersonalList: FC = () => {
           </div>
         </div>
 
+        {/* Mensagem quando o aluno não está associado a uma academia */}
+        {!(userData?.preferenciasAluno as PreferenciasAlunoExtended)?.academiaId && !isLoading && (
+          <div className="text-center text-gray-600 bg-yellow-50 p-8 rounded-lg">
+            <p className="text-xl font-medium mb-2">Você ainda não está associado a uma academia</p>
+            <p>Para ver os personais disponíveis, você precisa primeiro se associar a uma academia.</p>
+          </div>
+        )}
+
         {/* Lista de Cards */}
-        {filteredPersonals.length === 0 ? (
+        {filteredPersonals.length === 0 && (userData?.preferenciasAluno as PreferenciasAlunoExtended)?.academiaId ? (
           <div className="text-center text-gray-600">
-            <p className="text-xl">Nenhum personal trainer encontrado</p>
+            <p className="text-xl">Nenhum personal trainer encontrado na sua academia</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {filteredPersonals.map(personal => (
-              <PersonalCard
-                key={personal.id}
-                id={personal.id}
-                name={personal.user.name}
-                specializations={personal.specializations}
-                yearsOfExperience={personal.yearsOfExperience}
-                workLocation={personal.workLocation}
-                pricePerHour={personal.pricePerHour}
-              />
-            ))}
-          </div>
+          (userData?.preferenciasAluno as PreferenciasAlunoExtended)?.academiaId && (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {filteredPersonals.map(personal => (
+                <PersonalCard
+                  key={personal.id}
+                  id={personal.id}
+                  name={personal.user.name}
+                  specializations={personal.specializations}
+                  yearsOfExperience={personal.yearsOfExperience}
+                  workLocation={personal.workLocation}
+                  pricePerHour={personal.pricePerHour}
+                />
+              ))}
+            </div>
+          )
         )}
       </div>
     </div>

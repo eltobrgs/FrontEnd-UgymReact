@@ -35,7 +35,8 @@ const AlunoLayout: FC<AlunoLayoutProps> = ({
       />
       <div className="flex-1 flex flex-col overflow-hidden">
         <AlunoHeader userName={userData?.name || 'Usuário'} />
-        <main className="flex-1 overflow-x-hidden overflow-y-auto">
+        <main className="flex-1 overflow-x-hidden overflow-y-auto bg-gray-100 p-4 pt-6 md:p-6 lg:p-8">
+          <div className="lg:hidden h-10 md:h-6"></div>
           {children}
         </main>
       </div>

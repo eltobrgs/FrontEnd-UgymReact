@@ -10,7 +10,7 @@ import AcademiaStudentList from '../pages/AcademiaPages/AcademiaStudentList';
 import PersonalRegister from '../pages/AcademiaPages/PersonalRegister';
 import StudentRegister from '../pages/AcademiaPages/AlunoRegister';
 import AcademiaPersonalList from '../pages/AcademiaPages/AcademiaPersonalList';
-import Settings from '../pages/GeralPurposePages/Settings/Settings';
+import Settings from '../pages/GeralPurposePages/Settings';
 
 
 interface AcademiaRoutesProps {
