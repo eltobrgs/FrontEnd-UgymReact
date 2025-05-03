@@ -9,8 +9,10 @@ import AlunoProfile from '../pages/AlunoPages/AlunoProfile';
 import AlunoReports from '../pages/AlunoPages/AlunoReports';
 import AlunoDietPlan from '../pages/AlunoPages/AlunoDietPlan';
 import AlunoPersonalList from '../pages/AlunoPages/AlunoPersonalList';
+import AlunoEventos from '../pages/AlunoPages/AlunoEventos';
 import Settings from '../pages/GeralPurposePages/Settings';
 import ProfileSetup from '../pages/AcademiaPages/AlunoProfileSetup';
+import TodoList from '../pages/GeralPurposePages/TodoList';
 
 interface AlunoRoutesProps {
   userData: UserData | null;
@@ -59,6 +61,14 @@ const AlunoRoutes: FC<AlunoRoutesProps> = ({ userData }) => {
       <Route 
         path="/personals" 
         element={<AlunoPersonalList />} 
+      />
+      <Route 
+        path="/events" 
+        element={<AlunoEventos />} 
+      />
+      <Route 
+        path="/todo-list" 
+        element={<TodoList />} 
       />
       <Route 
         path="/settings" 

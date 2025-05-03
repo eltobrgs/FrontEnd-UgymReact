@@ -75,6 +75,7 @@ const Reports: FC<ReportsProps> = ({ userName }) => {
     if (Object.keys(histories).length > 0) {
       setExpandedHistories(prev => ({ ...prev, ...histories }));
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [reports]);
 
   // Buscar relatórios do aluno

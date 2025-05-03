@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { FaSearch, FaPlus } from 'react-icons/fa';
 import { connectionUrl } from '../../config/connection';
-import LoadingSpinner from '../../components/LoadingSpinner/LoadingSpinner';
+import LoadingSpinner from '../../components/GeralPurposeComponents/LoadingSpinner/LoadingSpinner';
 import PersonalCard from '../../components/PersonalComponents/PersonalCard';
 import { useUser } from '../../contexts/UserContext';
 

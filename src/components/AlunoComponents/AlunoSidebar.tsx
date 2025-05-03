@@ -4,12 +4,13 @@ import {
   FaHome, 
   FaChartBar, 
   FaDumbbell, 
-  FaUtensils, 
+  // FaUtensils, 
   FaUsers, 
   FaUserTie,
   FaCalendarAlt,
   FaTimes,
-  FaBars
+  FaBars,
+  FaCheckSquare
 } from 'react-icons/fa';
 import { motion, AnimatePresence } from 'framer-motion';
 // import { Link } from 'react-router-dom';
@@ -28,7 +29,8 @@ const AlunoSidebar: FC<AlunoSidebarProps> = ({ userName, userPlan, userImage, is
     { icon: FaHome, text: 'Visão Geral', path: '/' },
     { icon: FaDumbbell, text: 'Meu Plano de Treino', path: '/workout-plan' },
     { icon: FaChartBar, text: 'Meus Relatórios', path: '/reports' },
-    { icon: FaUtensils, text: 'Meu Plano Alimentar', path: '/diet-plan' },
+    // { icon: FaUtensils, text: 'Meu Plano Alimentar', path: '/diet-plan' }, tela desativada por momento
+    { icon: FaCheckSquare, text: 'Lista de Tarefas', path: '/todo-list' },
     { icon: FaUsers, text: 'Treinadores', path: '/personals' },
     { icon: FaCalendarAlt, text: 'Eventos da Academia', path: '/events' },
     { icon: FaUserTie, text: 'Meu Perfil', path: '/profile' },

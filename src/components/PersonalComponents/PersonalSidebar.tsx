@@ -6,11 +6,10 @@ import {
   FaDumbbell, 
   FaUsers, 
   FaUserTie,
-  FaCalendarAlt,
-  FaClipboardList,
   FaTimes,
-  FaMoneyBillWave,
-  FaBars
+  FaBars,
+  FaCheckSquare,
+  FaCalendarAlt
 } from 'react-icons/fa';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -29,9 +28,8 @@ const PersonalSidebar: FC<PersonalSidebarProps> = ({ userName, userPlan, userIma
     { icon: FaUsers, text: 'Meus Alunos', path: '/my-students' },
     { icon: FaDumbbell, text: 'Planos de Treino', path: '/personal-gerencia-treino' },
     { icon: FaChartBar, text: 'Relatórios de alunos', path: '/personal-gerencia-reports' },
-    { icon: FaCalendarAlt, text: 'Agenda', path: '/schedule' },
-    { icon: FaClipboardList, text: 'Avaliações', path: '/assessments' },
-    { icon: FaMoneyBillWave, text: 'Financeiro', path: '/financial' },
+    { icon: FaCalendarAlt, text: 'Eventos da Academia', path: '/eventos' },
+    { icon: FaCheckSquare, text: 'Lista de Tarefas', path: '/todo-list' },
     { icon: FaUserTie, text: 'Meu Perfil', path: '/personal-profile' },
   ];
 

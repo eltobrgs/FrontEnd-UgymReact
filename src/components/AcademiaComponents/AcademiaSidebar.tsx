@@ -5,10 +5,11 @@ import {
   FaUsers, 
   FaUserTie,
   FaTimes,
-  FaCog,
   FaBuilding,
   FaUserPlus,
-  FaBars
+  FaBars,
+  FaCheckSquare,
+  FaCalendarAlt
 } from 'react-icons/fa';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -25,10 +26,11 @@ const AcademiaSidebar: FC<AcademiaSidebarProps> = ({ userName, userImage, isOpen
     { icon: FaHome, text: 'Dashboard', path: '/' },
     { icon: FaUsers, text: 'Alunos', path: '/students' },
     { icon: FaUserTie, text: 'Personais', path: '/personals' },
+    { icon: FaCalendarAlt, text: 'Eventos', path: '/eventos' },
     { icon: FaUserPlus, text: 'Adicionar Alunos', path: '/StudentRegister' },
     { icon: FaUserPlus, text: 'Adicionar Personais', path: '/PersonalRegister' },
+    { icon: FaCheckSquare, text: 'Lista de Tarefas', path: '/todo-list' },
     { icon: FaBuilding, text: 'Perfil da Academia', path: '/profile' },
-    { icon: FaCog, text: 'Configurações', path: '/settings' },
   ];
 
   return (

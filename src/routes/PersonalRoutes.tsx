@@ -9,7 +9,9 @@ import PersonalStudentList from '../pages/PersonalPages/PersonalStudentList';
 import LinkedStudentList from '../pages/PersonalPages/LinkedStudentList';
 import PersonalGerenciaTreino from '../pages/PersonalPages/PersonalGerenciaTreino';
 import PersonalGerenciaReports from '../pages/PersonalPages/PersonalGerenciaReports';
+import PersonalEventos from '../pages/PersonalPages/PersonalEventos';
 import Settings from '../pages/GeralPurposePages/Settings';
+import TodoList from '../pages/GeralPurposePages/TodoList';
 
 interface PersonalRoutesProps {
   userData: UserData | null;
@@ -25,6 +27,8 @@ const PersonalRoutes: FC<PersonalRoutesProps> = ({ userData }) => {
       <Route path="/personal-profile" element={<PersonalProfile />} />
       <Route path="/personal-gerencia-treino" element={<PersonalGerenciaTreino />} />
       <Route path="/personal-gerencia-reports" element={<PersonalGerenciaReports />} />
+      <Route path="/eventos" element={<PersonalEventos />} />
+      <Route path="/todo-list" element={<TodoList />} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );
