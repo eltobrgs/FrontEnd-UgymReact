@@ -10,6 +10,7 @@ import AlunoReports from '../pages/AlunoPages/AlunoReports';
 import AlunoDietPlan from '../pages/AlunoPages/AlunoDietPlan';
 import AlunoPersonalList from '../pages/AlunoPages/AlunoPersonalList';
 import AlunoEventos from '../pages/AlunoPages/AlunoEventos';
+import AlunoPagamentos from '../pages/AlunoPages/AlunoPagamentos';
 import Settings from '../pages/GeralPurposePages/Settings';
 import ProfileSetup from '../pages/AcademiaPages/AlunoProfileSetup';
 import TodoList from '../pages/GeralPurposePages/TodoList';
@@ -65,6 +66,10 @@ const AlunoRoutes: FC<AlunoRoutesProps> = ({ userData }) => {
       <Route 
         path="/events" 
         element={<AlunoEventos />} 
+      />
+      <Route 
+        path="/pagamentos" 
+        element={<AlunoPagamentos />} 
       />
       <Route 
         path="/todo-list" 

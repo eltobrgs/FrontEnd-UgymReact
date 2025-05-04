@@ -137,7 +137,7 @@ const PersonalProfileSetup: FC<PersonalProfileSetupModalProps> = ({
       onClose={onClose}
       title="Configure seu Perfil Profissional"
     >
-      <div className="p-4">
+      <div className="p-4 overflow-y-auto max-h-[calc(90vh-100px)]">
         <p className="text-sm text-gray-600 mb-6">
           Complete seu perfil para começar a atender alunos
         </p>

@@ -11,6 +11,7 @@ import PersonalRegister from '../pages/AcademiaPages/PersonalRegister';
 import StudentRegister from '../pages/AcademiaPages/AlunoRegister';
 import AcademiaPersonalList from '../pages/AcademiaPages/AcademiaPersonalList';
 import AcademiaEventos from '../pages/AcademiaPages/AcademiaEventos';
+import AcademiaFinancas from '../pages/AcademiaPages/AcademiaFinancas';
 import Settings from '../pages/GeralPurposePages/Settings';
 import TodoList from '../pages/GeralPurposePages/TodoList';
 
@@ -35,6 +36,7 @@ const AcademiaRoutes: FC<AcademiaRoutesProps> = ({ userData }) => {
       <Route path="/students" element={<AcademiaStudentList />} />
       <Route path="/personals" element={<AcademiaPersonalList />} />
       <Route path="/eventos" element={<AcademiaEventos />} />
+      <Route path="/financas" element={<AcademiaFinancas />} />
       <Route path="/PersonalRegister" element={<PersonalRegister />} />
       <Route path="/StudentRegister" element={<StudentRegister />} />
       <Route path="/todo-list" element={<TodoList />} />

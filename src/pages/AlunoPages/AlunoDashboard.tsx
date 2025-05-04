@@ -4,6 +4,7 @@ import { connectionUrl } from '../../config/connection';
 import TodoListTabs from '../../components/GeralPurposeComponents/TodoListTabs/TodoListTabs';
 import EventosTabs from '../../components/GeralPurposeComponents/EventosTabs/EventosTabs';
 import PersonalResponsavel from '../../components/AlunoComponents/PersonalResponsavel/PersonalResponsavel';
+import StatusPagamento from '../../components/AlunoComponents/StatusPagamento/StatusPagamento';
 
 interface DashboardStats {
   steps: number;
@@ -143,10 +144,20 @@ const AlunoDashboard: FC<AlunoDashboardProps> = ({ userName, stats: initialStats
       </div>
 
       {/* Conteúdo Principal do Dashboard */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Personal Responsável */}
-        <PersonalResponsavel containerClassName="h-full" />
+        <div className="lg:col-span-2">
+          <PersonalResponsavel containerClassName="h-full" />
+        </div>
         
+        {/* Status de Pagamento */}
+        <div className="lg:col-span-1">
+          <StatusPagamento containerClassName="h-full" />
+        </div>
+      </div>
+      
+      {/* Segunda Linha */}
+      <div className="grid grid-cols-1 lg:grid-cols-1 gap-6 mt-6">
         {/* Lista de Tarefas */}
         <TodoListTabs containerClassName="h-full" />
       </div>

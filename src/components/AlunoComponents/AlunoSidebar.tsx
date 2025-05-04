@@ -10,7 +10,8 @@ import {
   FaCalendarAlt,
   FaTimes,
   FaBars,
-  FaCheckSquare
+  FaCheckSquare,
+  FaMoneyBillWave
 } from 'react-icons/fa';
 import { motion, AnimatePresence } from 'framer-motion';
 // import { Link } from 'react-router-dom';
@@ -30,6 +31,7 @@ const AlunoSidebar: FC<AlunoSidebarProps> = ({ userName, userPlan, userImage, is
     { icon: FaDumbbell, text: 'Meu Plano de Treino', path: '/workout-plan' },
     { icon: FaChartBar, text: 'Meus Relatórios', path: '/reports' },
     // { icon: FaUtensils, text: 'Meu Plano Alimentar', path: '/diet-plan' }, tela desativada por momento
+    { icon: FaMoneyBillWave, text: 'Meus Pagamentos', path: '/pagamentos' },
     { icon: FaCheckSquare, text: 'Lista de Tarefas', path: '/todo-list' },
     { icon: FaUsers, text: 'Treinadores', path: '/personals' },
     { icon: FaCalendarAlt, text: 'Eventos da Academia', path: '/events' },
