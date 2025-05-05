@@ -10,22 +10,22 @@ export default defineConfig({
     tailwindcss(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['favicon.ico', 'robots.txt', 'icons/*.svg'],
+      includeAssets: ['favicon.ico', 'robots.txt', 'icons/*.png'],
       manifest: {
         name: 'UGym',
         short_name: 'UGym',
         description: 'Aplicação UGym para gerenciamento de academia',
-        theme_color: '#4f46e5',
+        theme_color: '#ff0000',
         icons: [
           {
-            src: '/icons/icon-192x192.svg',
+            src: 'icons/android-chrome-192x192.png',
             sizes: '192x192',
-            type: 'image/svg+xml'
+            type: 'image/png'
           },
           {
-            src: '/icons/icon-512x512.svg',
+            src: 'icons/android-chrome-512x512.png',
             sizes: '512x512',
-            type: 'image/svg+xml'
+            type: 'image/png'
           }
         ]
       }
