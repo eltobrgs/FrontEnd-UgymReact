@@ -30,6 +30,7 @@ type ChartType = 'line' | 'bar' | 'area' | 'pie' | 'radar' | 'composed';
 
 const tiposRelatorioPT: Record<string, string> = {
   'peso': 'Peso (kg)',
+  'altura': 'Altura (cm)',
   'IMC': 'IMC',
   'medidas_braco': 'Medidas do Braço (cm)',
   'medidas_perna': 'Medidas da Perna (cm)',
@@ -91,6 +92,130 @@ const PersonalGerenciaReports = () => {
       setExpandedHistories(prev => ({ ...prev, ...histories }));
     }
   }, [reports]);
+
+  // Calcular IMC com base nos valores de peso e altura disponíveis
+  useEffect(() => {
+    if (!reports.peso || !reports.altura || reports.peso.length === 0 || reports.altura.length === 0) {
+      return;
+    }
+
+    // Criar um mapa de datas de peso para facilitar a busca
+    const pesosPorData = new Map<string, number>();
+    reports.peso.forEach(report => {
+      const data = new Date(report.data).toISOString().split('T')[0];
+      pesosPorData.set(data, report.valor);
+    });
+
+    // Para cada medida de altura, tentar encontrar um peso correspondente na mesma data
+    // ou usar o peso mais próximo anterior para calcular o IMC
+    const imcReports: Report[] = [];
+    const imcDates = new Set<string>(); // Para evitar duplicatas
+
+    reports.altura.forEach(alturaReport => {
+      const alturaData = new Date(alturaReport.data).toISOString().split('T')[0];
+      const alturaEmMetros = alturaReport.valor / 100;
+      
+      // Verificar se há um peso registrado na mesma data
+      if (pesosPorData.has(alturaData)) {
+        const peso = pesosPorData.get(alturaData)!;
+        const imc = peso / (alturaEmMetros * alturaEmMetros);
+        
+        imcReports.push({
+          id: 0, // Será substituído pelo backend
+          valor: parseFloat(imc.toFixed(2)),
+          data: alturaReport.data,
+          observacao: `Calculado automaticamente: Peso ${peso}kg, Altura ${alturaReport.valor}cm`
+        });
+        
+        imcDates.add(alturaData);
+      }
+    });
+
+    // Adicionar relatórios de IMC para pesos que não têm altura na mesma data
+    // (usando a altura mais recente disponível)
+    reports.peso.forEach(pesoReport => {
+      const pesoData = new Date(pesoReport.data).toISOString().split('T')[0];
+      
+      // Se já temos um IMC para esta data, pular
+      if (imcDates.has(pesoData)) {
+        return;
+      }
+      
+      // Encontrar a altura mais recente antes ou igual à data do peso
+      const alturasAnteriores = reports.altura
+        .filter(a => new Date(a.data) <= new Date(pesoReport.data))
+        .sort((a, b) => new Date(b.data).getTime() - new Date(a.data).getTime());
+      
+      if (alturasAnteriores.length > 0) {
+        const alturaRecente = alturasAnteriores[0];
+        const alturaEmMetros = alturaRecente.valor / 100;
+        const imc = pesoReport.valor / (alturaEmMetros * alturaEmMetros);
+        
+        imcReports.push({
+          id: 0,
+          valor: parseFloat(imc.toFixed(2)),
+          data: pesoReport.data,
+          observacao: `Calculado automaticamente: Peso ${pesoReport.valor}kg, Altura ${alturaRecente.valor}cm (${formatDate(alturaRecente.data)})`
+        });
+      }
+    });
+
+    // Atualizar os relatórios se houver novos cálculos de IMC
+    if (imcReports.length > 0) {
+      // Verificar se já existem relatórios de IMC
+      const imcExistente = reports.IMC || [];
+      
+      // Verificar se há novos valores
+      let temNovoValor = false;
+      
+      if (imcExistente.length !== imcReports.length) {
+        temNovoValor = true;
+      } else {
+        // Comparar datas para ver se há novos relatórios
+        const datasExistentes = new Set(imcExistente.map(r => new Date(r.data).toISOString()));
+        const datasNovas = new Set(imcReports.map(r => new Date(r.data).toISOString()));
+        
+        datasNovas.forEach(data => {
+          if (!datasExistentes.has(data)) {
+            temNovoValor = true;
+          }
+        });
+      }
+      
+      if (temNovoValor) {
+        const updatedReports = { ...reports, IMC: imcReports };
+        setReports(updatedReports);
+        
+        // Sincronizar os relatórios de IMC com o backend
+        syncIMCReports(imcReports);
+      }
+    }
+  }, [reports.peso, reports.altura]);
+
+  // Função para sincronizar os relatórios de IMC com o backend
+  const syncIMCReports = async (imcReports: Report[]) => {
+    if (!selectedStudent) return;
+    
+    try {
+      const response = await fetch(
+        `${connectionUrl}/personal/aluno/${selectedStudent.id}/sync-imc`, 
+        {
+          method: 'POST',
+          headers: { 
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}` 
+          },
+          body: JSON.stringify({ reports: imcReports })
+        }
+      );
+      
+      if (!response.ok) {
+        console.error('Erro ao sincronizar relatórios de IMC');
+      }
+    } catch (error) {
+      console.error('Erro ao sincronizar IMC:', error);
+    }
+  };
 
   // Buscar alunos vinculados ao personal
   useEffect(() => {
@@ -192,6 +317,16 @@ const PersonalGerenciaReports = () => {
         id: editingReport?.id
       };
       
+      // Verificar se é um relatório de IMC (não permitir edição manual)
+      if (reportData.tipo === 'IMC') {
+        Swal.fire({
+          icon: 'warning',
+          title: 'Operação não permitida',
+          text: 'O IMC é calculado automaticamente com base no peso e altura. Por favor, atualize esses valores.'
+        });
+        return;
+      }
+      
       const response = await fetch(
         `${connectionUrl}/personal/aluno/${selectedStudent.id}/reports`, 
         {
@@ -241,6 +376,16 @@ const PersonalGerenciaReports = () => {
 
   // Iniciar a edição de um relatório
   const handleEditReport = (tipo: string, report: Report) => {
+    // Não permitir edição de relatórios de IMC (calculado automaticamente)
+    if (tipo === 'IMC') {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Operação não permitida',
+        text: 'O IMC é calculado automaticamente com base no peso e altura. Por favor, atualize esses valores.'
+      });
+      return;
+    }
+    
     setEditingReport(report);
     setNewReport({
       tipo,
@@ -387,9 +532,11 @@ const PersonalGerenciaReports = () => {
                             onChange={(e) => setNewReport({...newReport, tipo: e.target.value})}
                             required
                           >
-                            {Object.entries(tiposRelatorioPT).map(([value, label]) => (
-                              <option key={value} value={value}>{label}</option>
-                            ))}
+                            {Object.entries(tiposRelatorioPT)
+                              .filter(([key]) => key !== 'IMC') // Remover IMC das opções (calculado automaticamente)
+                              .map(([value, label]) => (
+                                <option key={value} value={value}>{label}</option>
+                              ))}
                           </select>
                         </div>
                         <div>
@@ -619,12 +766,19 @@ const PersonalGerenciaReports = () => {
                                       <td className="px-6 py-4 whitespace-nowrap">{report.valor}</td>
                                       <td className="px-6 py-4">{report.observacao || "-"}</td>
                                       <td className="px-6 py-4 whitespace-nowrap text-right">
-                                        <button
-                                          onClick={() => handleEditReport(tipo, report)}
-                                          className="text-red-600 hover:text-red-800 transition"
-                                        >
-                                          Editar
-                                        </button>
+                                        {tipo !== 'IMC' && (
+                                          <button
+                                            onClick={() => handleEditReport(tipo, report)}
+                                            className="text-red-600 hover:text-red-800 transition"
+                                          >
+                                            Editar
+                                          </button>
+                                        )}
+                                        {tipo === 'IMC' && (
+                                          <span className="text-gray-400 cursor-not-allowed">
+                                            Automático
+                                          </span>
+                                        )}
                                       </td>
                                     </tr>
                                   ))}

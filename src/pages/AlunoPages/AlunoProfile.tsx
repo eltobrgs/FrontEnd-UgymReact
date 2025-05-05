@@ -1,4 +1,4 @@
-import { FC, useState } from 'react';
+import { FC, useState, useEffect } from 'react';
 import { FiEdit2 } from 'react-icons/fi';
 import {
   FaWeight,
@@ -16,14 +16,54 @@ import {
 } from 'react-icons/fa';
 import { useUser } from '../../contexts/UserContext';
 import ProfileSetup from '../AcademiaPages/AlunoProfileSetup';
+import { connectionUrl } from '../../config/connection';
+import { useAuth } from '../../contexts/AuthContext';
 
 interface AlunoProfileProps {
   userName: string;
 }
 
+interface ReportsByType {
+  peso?: { id: number; valor: number; data: string }[];
+  altura?: { id: number; valor: number; data: string }[];
+  [key: string]: { id: number; valor: number; data: string }[] | undefined;
+}
+
 const AlunoProfile: FC<AlunoProfileProps> = () => {
   const { userData } = useUser();
+  const { token } = useAuth();
   const [showProfileSetup, setShowProfileSetup] = useState(false);
+  const [reports, setReports] = useState<ReportsByType>({});
+  const [loading, setLoading] = useState(true);
+
+  // Buscar relatórios do aluno
+  useEffect(() => {
+    const fetchReports = async () => {
+      try {
+        setLoading(true);
+        const response = await fetch(`${connectionUrl}/aluno/meus-reports`, {
+          headers: { 
+            Authorization: `Bearer ${token}` 
+          }
+        });
+        
+        if (!response.ok) {
+          throw new Error(`Erro ao buscar relatórios: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        setReports(data.reports || {});
+      } catch (error) {
+        console.error('Erro ao buscar relatórios:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (token) {
+      fetchReports();
+    }
+  }, [token]);
 
   const handleEditProfile = () => {
     if (userData?.id) {
@@ -34,6 +74,44 @@ const AlunoProfile: FC<AlunoProfileProps> = () => {
   const handleProfileSetupSuccess = () => {
     setShowProfileSetup(false);
   };
+
+  // Obter o valor mais recente do relatório de peso
+  const getLatestWeight = () => {
+    if (!reports.peso || reports.peso.length === 0) return null;
+    
+    const sortedReports = [...reports.peso].sort((a, b) => 
+      new Date(b.data).getTime() - new Date(a.data).getTime()
+    );
+    
+    return sortedReports[0].valor;
+  };
+
+  // Obter o valor mais recente do relatório de altura
+  const getLatestHeight = () => {
+    if (!reports.altura || reports.altura.length === 0) return null;
+    
+    const sortedReports = [...reports.altura].sort((a, b) => 
+      new Date(b.data).getTime() - new Date(a.data).getTime()
+    );
+    
+    return sortedReports[0].valor;
+  };
+
+  // Calcular IMC com base nos relatórios mais recentes
+  const calculateIMC = () => {
+    const weight = getLatestWeight();
+    const height = getLatestHeight();
+    
+    if (!weight || !height) return null;
+    
+    // IMC = peso (kg) / altura² (m)
+    const heightInMeters = height / 100;
+    return weight / (heightInMeters * heightInMeters);
+  };
+
+  const latestWeight = getLatestWeight();
+  const latestHeight = getLatestHeight();
+  const calculatedIMC = calculateIMC();
 
   return (
     <>
@@ -88,28 +166,34 @@ const AlunoProfile: FC<AlunoProfileProps> = () => {
           {/* Dados Físicos */}
           <div className="bg-white rounded-xl p-6 shadow-sm">
             <h2 className="text-xl font-semibold mb-4 text-gray-800">Dados Físicos</h2>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-4">
-                <div className="flex items-center space-x-3 text-gray-600">
-                  <FaRulerVertical className="text-red-600" />
-                  <span>Altura: {userData?.preferenciasAluno?.height || '0'} cm</span>
+            {loading ? (
+              <div className="flex justify-center items-center h-32">
+                <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-red-600"></div>
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-4">
+                  <div className="flex items-center space-x-3 text-gray-600">
+                    <FaRulerVertical className="text-red-600" />
+                    <span>Altura: {latestHeight ? `${latestHeight} cm` : 'Não registrado'}</span>
+                  </div>
+                  <div className="flex items-center space-x-3 text-gray-600">
+                    <FaWeight className="text-red-600" />
+                    <span>Peso: {latestWeight ? `${latestWeight} kg` : 'Não registrado'}</span>
+                  </div>
                 </div>
-                <div className="flex items-center space-x-3 text-gray-600">
-                  <FaWeight className="text-red-600" />
-                  <span>Peso: {userData?.preferenciasAluno?.weight || '0'} kg</span>
+                <div className="space-y-4">
+                  <div className="flex items-center space-x-3 text-gray-600">
+                    <FaPercent className="text-red-600" />
+                    <span>IMC: {calculatedIMC ? calculatedIMC.toFixed(2) : 'Não calculado'}</span>
+                  </div>
+                  <div className="flex items-center space-x-3 text-gray-600">
+                    <FaRunning className="text-red-600" />
+                    <span>Nível de Atividade: {userData?.preferenciasAluno?.activityLevel || 'Não informado'}</span>
+                  </div>
                 </div>
               </div>
-              <div className="space-y-4">
-                <div className="flex items-center space-x-3 text-gray-600">
-                  <FaPercent className="text-red-600" />
-                  <span>IMC: {userData?.preferenciasAluno?.imc?.toFixed(2) || 'Não calculado'}</span>
-                </div>
-                <div className="flex items-center space-x-3 text-gray-600">
-                  <FaRunning className="text-red-600" />
-                  <span>Nível de Atividade: {userData?.preferenciasAluno?.activityLevel || 'Não informado'}</span>
-                </div>
-              </div>
-            </div>
+            )}
           </div>
 
           {/* Objetivos e Experiência */}

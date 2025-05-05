@@ -1,5 +1,4 @@
 import { FC, useState, FormEvent } from 'react';
-import { FaWeight, FaRulerVertical } from 'react-icons/fa';
 import Input from '../../components/GeralPurposeComponents/input/Input';
 import Button from '../../components/GeralPurposeComponents/Button/Button';
 import Modal from '../../components/GeralPurposeComponents/Modal/Modal';
@@ -19,10 +18,7 @@ interface ProfileSetupModalProps {
     goal: string;
     healthCondition: string;
     experience: string;
-    height: string;
-    weight: string;
     activityLevel: string;
-    medicalConditions: string;
     physicalLimitations: string;
   };
 }
@@ -43,10 +39,7 @@ const AlunoProfileSetup: FC<ProfileSetupModalProps> = ({
     goal: initialData?.goal || '',
     healthCondition: initialData?.healthCondition || '',
     experience: initialData?.experience || '',
-    height: initialData?.height || '',
-    weight: initialData?.weight || '',
     activityLevel: initialData?.activityLevel || '',
-    medicalConditions: initialData?.medicalConditions || '',
     physicalLimitations: initialData?.physicalLimitations || ''
   });
 
@@ -166,32 +159,6 @@ const AlunoProfileSetup: FC<ProfileSetupModalProps> = ({
             </div>
 
             <Input
-              label="Altura (cm)"
-              type="number"
-              name="height"
-              value={formData.height}
-              onChange={handleChange}
-              icon={<FaRulerVertical size={20} />}
-              placeholder="Ex: 175"
-              min="100"
-              max="250"
-              required
-            />
-
-            <Input
-              label="Peso (kg)"
-              type="number"
-              name="weight"
-              value={formData.weight}
-              onChange={handleChange}
-              icon={<FaWeight size={20} />}
-              placeholder="Ex: 70"
-              min="30"
-              max="300"
-              required
-            />
-
-            <Input
               label="Objetivo"
               type="text"
               name="goal"
@@ -232,20 +199,6 @@ const AlunoProfileSetup: FC<ProfileSetupModalProps> = ({
           </div>
 
           <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Condições Médicas
-              </label>
-              <textarea
-                name="medicalConditions"
-                value={formData.medicalConditions}
-                onChange={handleChange}
-                className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                rows={3}
-                placeholder="Liste quaisquer condições médicas relevantes (opcional)"
-              />
-            </div>
-
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Restrições Físicas

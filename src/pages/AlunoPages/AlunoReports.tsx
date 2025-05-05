@@ -25,6 +25,7 @@ type ChartType = 'line' | 'bar' | 'area' | 'pie' | 'radar' | 'composed';
 
 const tiposRelatorioPT: Record<string, string> = {
   'peso': 'Peso (kg)',
+  'altura': 'Altura (cm)',
   'IMC': 'IMC',
   'medidas_braco': 'Medidas do Braço (cm)',
   'medidas_perna': 'Medidas da Perna (cm)',
@@ -77,6 +78,80 @@ const Reports: FC<ReportsProps> = ({ userName }) => {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [reports]);
+
+  // Calcular IMC com base nos valores de peso e altura disponíveis
+  useEffect(() => {
+    if (!reports.peso || !reports.altura || reports.peso.length === 0 || reports.altura.length === 0) {
+      return;
+    }
+
+    // Criar um mapa de datas de peso para facilitar a busca
+    const pesosPorData = new Map<string, number>();
+    reports.peso.forEach(report => {
+      const data = new Date(report.data).toISOString().split('T')[0];
+      pesosPorData.set(data, report.valor);
+    });
+
+    // Para cada medida de altura, tentar encontrar um peso correspondente na mesma data
+    // ou usar o peso mais próximo anterior para calcular o IMC
+    const imcReports: Report[] = [];
+    const imcDates = new Set<string>(); // Para evitar duplicatas
+
+    reports.altura.forEach(alturaReport => {
+      const alturaData = new Date(alturaReport.data).toISOString().split('T')[0];
+      const alturaEmMetros = alturaReport.valor / 100;
+      
+      // Verificar se há um peso registrado na mesma data
+      if (pesosPorData.has(alturaData)) {
+        const peso = pesosPorData.get(alturaData)!;
+        const imc = peso / (alturaEmMetros * alturaEmMetros);
+        
+        imcReports.push({
+          id: 0, // Será substituído pelo backend
+          valor: parseFloat(imc.toFixed(2)),
+          data: alturaReport.data,
+          observacao: `Calculado automaticamente: Peso ${peso}kg, Altura ${alturaReport.valor}cm`
+        });
+        
+        imcDates.add(alturaData);
+      }
+    });
+
+    // Adicionar relatórios de IMC para pesos que não têm altura na mesma data
+    // (usando a altura mais recente disponível)
+    reports.peso.forEach(pesoReport => {
+      const pesoData = new Date(pesoReport.data).toISOString().split('T')[0];
+      
+      // Se já temos um IMC para esta data, pular
+      if (imcDates.has(pesoData)) {
+        return;
+      }
+      
+      // Encontrar a altura mais recente antes ou igual à data do peso
+      const alturasAnteriores = reports.altura
+        .filter(a => new Date(a.data) <= new Date(pesoReport.data))
+        .sort((a, b) => new Date(b.data).getTime() - new Date(a.data).getTime());
+      
+      if (alturasAnteriores.length > 0) {
+        const alturaRecente = alturasAnteriores[0];
+        const alturaEmMetros = alturaRecente.valor / 100;
+        const imc = pesoReport.valor / (alturaEmMetros * alturaEmMetros);
+        
+        imcReports.push({
+          id: 0,
+          valor: parseFloat(imc.toFixed(2)),
+          data: pesoReport.data,
+          observacao: `Calculado automaticamente: Peso ${pesoReport.valor}kg, Altura ${alturaRecente.valor}cm (${formatDate(alturaRecente.data)})`
+        });
+      }
+    });
+
+    // Atualizar os relatórios se houver novos cálculos de IMC
+    if (imcReports.length > 0) {
+      const updatedReports = { ...reports, IMC: imcReports };
+      setReports(updatedReports);
+    }
+  }, [reports.peso, reports.altura]);
 
   // Buscar relatórios do aluno
   useEffect(() => {
@@ -162,6 +237,16 @@ const Reports: FC<ReportsProps> = ({ userName }) => {
     });
   };
 
+  // Obter contexto adicional para o gráfico de IMC
+  const getIMCContext = (imc: number) => {
+    if (imc < 18.5) return 'Abaixo do peso';
+    if (imc < 25) return 'Peso normal';
+    if (imc < 30) return 'Sobrepeso';
+    if (imc < 35) return 'Obesidade grau I';
+    if (imc < 40) return 'Obesidade grau II';
+    return 'Obesidade grau III';
+  };
+
   // Gerar gráficos com base nos dados reais
   const generateCharts = () => {
     if (Object.keys(reports).length === 0) {
@@ -197,6 +282,53 @@ const Reports: FC<ReportsProps> = ({ userName }) => {
             {chartTypeLabels[chartTypes[tipo] || 'line']}
           </button>
         </div>
+        
+        {/* Indicador de progresso para IMC */}
+        {tipo === 'IMC' && reportData.length > 0 && (
+          <div className="mb-6">
+            {(() => {
+              const sortedData = [...reportData].sort((a, b) => 
+                new Date(b.data).getTime() - new Date(a.data).getTime()
+              );
+              const latestIMC = sortedData[0].valor;
+              const imcContext = getIMCContext(latestIMC);
+              
+              // Determinar a cor com base no IMC
+              let statusColor = 'bg-green-500';
+              if (latestIMC < 18.5 || latestIMC >= 25) statusColor = 'bg-yellow-500';
+              if (latestIMC >= 30) statusColor = 'bg-red-500';
+              
+              return (
+                <div className="p-4 bg-gray-50 rounded-lg">
+                  <div className="flex justify-between items-center mb-2">
+                    <span className="font-medium">Último IMC: {latestIMC.toFixed(2)}</span>
+                    <span className={`text-sm px-2 py-1 rounded-full ${
+                      latestIMC < 18.5 ? 'bg-blue-100 text-blue-800' :
+                      latestIMC < 25 ? 'bg-green-100 text-green-800' :
+                      latestIMC < 30 ? 'bg-yellow-100 text-yellow-800' :
+                      'bg-red-100 text-red-800'
+                    }`}>
+                      {imcContext}
+                    </span>
+                  </div>
+                  
+                  <div className="h-2 w-full bg-gray-200 rounded-full overflow-hidden">
+                    <div 
+                      className={`h-full ${statusColor}`} 
+                      style={{ width: `${Math.min(latestIMC * 2, 100)}%` }}
+                    ></div>
+                  </div>
+                  
+                  <div className="flex justify-between mt-1 text-xs text-gray-500">
+                    <span>15</span>
+                    <span>Normal: 18.5-24.9</span>
+                    <span>50</span>
+                  </div>
+                </div>
+              );
+            })()}
+          </div>
+        )}
         
         {chartTypes[tipo] === 'line' ? (
           <div className="h-[300px] mb-4">
@@ -355,7 +487,19 @@ const Reports: FC<ReportsProps> = ({ userName }) => {
                   {reportData.map((report) => (
                     <tr key={report.id}>
                       <td className="px-4 py-2 whitespace-nowrap">{formatDate(report.data)}</td>
-                      <td className="px-4 py-2 whitespace-nowrap">{report.valor}</td>
+                      <td className="px-4 py-2 whitespace-nowrap">
+                        {report.valor}
+                        {tipo === 'IMC' && (
+                          <span className={`ml-2 text-xs px-2 py-0.5 rounded-full ${
+                            report.valor < 18.5 ? 'bg-blue-100 text-blue-800' :
+                            report.valor < 25 ? 'bg-green-100 text-green-800' :
+                            report.valor < 30 ? 'bg-yellow-100 text-yellow-800' :
+                            'bg-red-100 text-red-800'
+                          }`}>
+                            {getIMCContext(report.valor)}
+                          </span>
+                        )}
+                      </td>
                       <td className="px-4 py-2">{report.observacao || "-"}</td>
                       <td className="px-4 py-2">{report.personal || "-"}</td>
                     </tr>

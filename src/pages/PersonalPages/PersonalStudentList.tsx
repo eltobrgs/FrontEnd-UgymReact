@@ -14,6 +14,11 @@ interface Student {
   goal: string;
   trainingTime: string;
   imageUrl?: string;
+  gender?: string;
+  healthCondition?: string;
+  experience?: string;
+  activityLevel?: string;
+  physicalLimitations?: string;
 }
 
 const PersonalStudentList: FC = () => {
@@ -51,11 +56,16 @@ const PersonalStudentList: FC = () => {
           id: student.id || 0,
           name: student.name || 'Nome não informado',
           age: student.age || 'N/A',
-          weight: student.weight || 'Não informado',
-          height: student.height || 'Não informado',
+          weight: student.weight || 'Dados em relatórios',
+          height: student.height || 'Dados em relatórios',
           goal: student.goal || 'Não informado',
           trainingTime: student.trainingTime || 'Iniciante',
-          imageUrl: student.imageUrl || undefined
+          imageUrl: student.imageUrl || undefined,
+          gender: student.gender || '',
+          healthCondition: student.healthCondition || '',
+          experience: student.experience || '',
+          activityLevel: student.activityLevel || '',
+          physicalLimitations: student.physicalLimitations || ''
         }));
         
         setStudents(processedData);

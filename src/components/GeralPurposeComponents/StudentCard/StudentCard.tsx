@@ -122,12 +122,16 @@ const StudentCard: FC<StudentCardProps> = ({
             
             <div className="flex items-center text-gray-700">
               <FaWeight className="mr-2 text-red-600 flex-shrink-0" />
-              <span className="text-sm">Peso: {weight}</span>
+              <span className="text-sm">
+                {weight === 'Dados em relatórios' ? 'Peso: Ver nos relatórios' : `Peso: ${weight}`}
+              </span>
             </div>
             
             <div className="flex items-center text-gray-700">
               <FaRulerVertical className="mr-2 text-red-600 flex-shrink-0" />
-              <span className="text-sm">Altura: {height}</span>
+              <span className="text-sm">
+                {height === 'Dados em relatórios' ? 'Altura: Ver nos relatórios' : `Altura: ${height}`}
+              </span>
             </div>
             
             <div className="flex items-center text-gray-700">

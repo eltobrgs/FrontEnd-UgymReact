@@ -1,7 +1,9 @@
 import { FC, useState, useEffect } from 'react';
-import { FaCalendarAlt, FaMapMarkerAlt, FaEye, FaTimes } from 'react-icons/fa';
+import { FaCalendarAlt, FaMapMarkerAlt, FaEye, FaTimes, FaCheck, FaUserCheck } from 'react-icons/fa';
+import { FiX } from 'react-icons/fi';
 import { connectionUrl } from '../../../config/connection';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
+import Swal from 'sweetalert2';
 
 interface Evento {
   id: number;
@@ -11,6 +13,21 @@ interface Evento {
   dataFim: string;
   local: string;
   tipo: 'ALUNO' | 'PERSONAL' | 'TODOS';
+}
+
+interface PresencaConfirmada {
+  id: number;
+  eventoId: number;
+  userId: number;
+  comentario?: string;
+  createdAt: string;
+  usuario: {
+    id: number;
+    name: string;
+    email: string;
+    role: string;
+    perfil: any;
+  }
 }
 
 interface EventosTabsProps {
@@ -24,6 +41,11 @@ const EventosTabs: FC<EventosTabsProps> = ({ containerClassName = "", userRole }
   const [activeTab, setActiveTab] = useState<'futuros' | 'passados'>('futuros');
   const [selectedEvento, setSelectedEvento] = useState<Evento | null>(null);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
+  const [isPresencaConfirmada, setIsPresencaConfirmada] = useState(false);
+  const [loadingConfirmacao, setLoadingConfirmacao] = useState(false);
+  const [comentario, setComentario] = useState('');
+  const [presencasConfirmadas, setPresencasConfirmadas] = useState<PresencaConfirmada[]>([]);
+  const [loadingPresencas, setLoadingPresencas] = useState(false);
   const token = localStorage.getItem('token');
 
   useEffect(() => {
@@ -63,7 +85,6 @@ const EventosTabs: FC<EventosTabsProps> = ({ containerClassName = "", userRole }
         setEventos(data);
       } catch (error) {
         console.error('Erro ao buscar eventos:', error);
-        // Em modo de produção, exibir dados de exemplo em vez de mostrar erro
         setEventos([]);
       } finally {
         setIsLoading(false);
@@ -99,9 +120,224 @@ const EventosTabs: FC<EventosTabsProps> = ({ containerClassName = "", userRole }
     });
   };
 
+  // Verificar se um evento já ocorreu
+  const eventoPassado = (dataFim: string) => {
+    const hoje = new Date();
+    const dataFimEvento = new Date(dataFim);
+    return dataFimEvento < hoje;
+  };
+
+  // Verificar se o usuário já confirmou presença
+  const verificarPresencaConfirmada = async (eventoId: number) => {
+    try {
+      setLoadingConfirmacao(true);
+      const token = localStorage.getItem('token');
+      
+      let url = '';
+      if (userRole === 'ALUNO') {
+        url = `${connectionUrl}/eventos/${eventoId}/confirmado`;
+      } else if (userRole === 'PERSONAL') {
+        url = `${connectionUrl}/personal/eventos/${eventoId}/confirmado`;
+      }
+      
+      if (!url) return;
+      
+      const response = await fetch(url, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setIsPresencaConfirmada(data.confirmado);
+        if (data.presenca?.comentario) {
+          setComentario(data.presenca.comentario);
+        } else {
+          setComentario('');
+        }
+      } else {
+        console.error('Erro ao verificar presença:', response.status, response.statusText);
+        setIsPresencaConfirmada(false);
+      }
+    } catch (error) {
+      console.error('Erro ao verificar presença:', error);
+      setIsPresencaConfirmada(false);
+    } finally {
+      setLoadingConfirmacao(false);
+    }
+  };
+
+  // Buscar presenças confirmadas para o evento (apenas para ACADEMIA)
+  const fetchPresencasConfirmadas = async (eventoId: number) => {
+    if (userRole !== 'ACADEMIA') return;
+    
+    try {
+      setLoadingPresencas(true);
+      const token = localStorage.getItem('token');
+      const response = await fetch(`${connectionUrl}/eventos/${eventoId}/presencas`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setPresencasConfirmadas(data);
+      } else {
+        console.error('Erro ao buscar presenças confirmadas');
+        setPresencasConfirmadas([]);
+      }
+    } catch (error) {
+      console.error('Erro ao buscar presenças confirmadas:', error);
+      setPresencasConfirmadas([]);
+    } finally {
+      setLoadingPresencas(false);
+    }
+  };
+
+  // Confirmar presença no evento
+  const confirmarPresenca = async () => {
+    try {
+      if (!selectedEvento) return;
+      
+      setLoadingConfirmacao(true);
+      const token = localStorage.getItem('token');
+      
+      let url = '';
+      if (userRole === 'ALUNO') {
+        url = `${connectionUrl}/eventos/${selectedEvento.id}/confirmar`;
+      } else if (userRole === 'PERSONAL') {
+        url = `${connectionUrl}/personal/eventos/${selectedEvento.id}/confirmar`;
+      }
+      
+      if (!url) return;
+      
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ comentario })
+      });
+
+      if (response.ok) {
+        setIsPresencaConfirmada(true);
+        Swal.fire({
+          icon: 'success',
+          title: 'Presença Confirmada',
+          text: 'Sua presença foi confirmada com sucesso.',
+          confirmButtonColor: userRole === 'ALUNO' ? '#3b82f6' : '#10b981',
+        });
+      } else {
+        console.error('Erro ao confirmar presença:', response.status, response.statusText);
+        let errorMessage = 'Ocorreu um erro ao confirmar sua presença.';
+        try {
+          const errorText = await response.text();
+          console.error('Resposta do servidor:', errorText);
+          if (errorText.includes('{')) {
+            const errorData = JSON.parse(errorText);
+            errorMessage = errorData.error || errorMessage;
+          } else {
+            errorMessage = `Erro ${response.status}: ${errorText.substring(0, 100)}...`;
+          }
+        } catch {
+          console.error('Não foi possível ler o corpo da resposta');
+        }
+        
+        throw new Error(errorMessage);
+      }
+    } catch (error: any) {
+      console.error('Erro ao confirmar presença:', error);
+      Swal.fire({
+        icon: 'error',
+        title: 'Erro',
+        text: error.message || 'Ocorreu um erro ao confirmar sua presença.',
+        confirmButtonColor: '#dc2626',
+      });
+    } finally {
+      setLoadingConfirmacao(false);
+    }
+  };
+
+  // Cancelar presença no evento
+  const cancelarPresenca = async () => {
+    try {
+      if (!selectedEvento) return;
+      
+      const result = await Swal.fire({
+        title: 'Cancelar Presença',
+        text: 'Tem certeza que deseja cancelar sua presença neste evento?',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: userRole === 'ALUNO' ? '#3b82f6' : '#10b981',
+        cancelButtonColor: '#4b5563',
+        confirmButtonText: 'Sim, cancelar',
+        cancelButtonText: 'Voltar'
+      });
+
+      if (result.isConfirmed) {
+        setLoadingConfirmacao(true);
+        const token = localStorage.getItem('token');
+        
+        let url = '';
+        if (userRole === 'ALUNO') {
+          url = `${connectionUrl}/eventos/${selectedEvento.id}/confirmar`;
+        } else if (userRole === 'PERSONAL') {
+          url = `${connectionUrl}/personal/eventos/${selectedEvento.id}/confirmar`;
+        }
+        
+        if (!url) return;
+        
+        const response = await fetch(url, {
+          method: 'DELETE',
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+
+        if (response.ok) {
+          setIsPresencaConfirmada(false);
+          setComentario('');
+          Swal.fire({
+            icon: 'success',
+            title: 'Presença Cancelada',
+            text: 'Sua presença foi cancelada com sucesso.',
+            confirmButtonColor: userRole === 'ALUNO' ? '#3b82f6' : '#10b981',
+          });
+        } else {
+          const errorData = await response.json();
+          throw new Error(errorData.error || 'Erro ao cancelar presença');
+        }
+      }
+    } catch (error: any) {
+      console.error('Erro ao cancelar presença:', error);
+      Swal.fire({
+        icon: 'error',
+        title: 'Erro',
+        text: error.message || 'Ocorreu um erro ao cancelar sua presença.',
+        confirmButtonColor: '#dc2626',
+      });
+    } finally {
+      setLoadingConfirmacao(false);
+    }
+  };
+
   // Abrir modal de detalhes
   const handleViewDetails = (evento: Evento) => {
     setSelectedEvento(evento);
+    
+    // Verificar presença confirmada para ALUNO e PERSONAL
+    if (userRole === 'ALUNO' || userRole === 'PERSONAL') {
+      verificarPresencaConfirmada(evento.id);
+    }
+    
+    // Carregar lista de presenças para ACADEMIA
+    if (userRole === 'ACADEMIA') {
+      fetchPresencasConfirmadas(evento.id);
+    }
+    
     setShowDetailsModal(true);
   };
 
@@ -220,36 +456,54 @@ const EventosTabs: FC<EventosTabsProps> = ({ containerClassName = "", userRole }
       </div>
 
       {/* Modal de Detalhes do Evento */}
+      <AnimatePresence>
       {showDetailsModal && selectedEvento && (
-        <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50">
-          <div className="bg-white rounded-lg shadow-xl w-full max-w-md mx-4">
-            <div className="flex justify-between items-center p-4 border-b">
-              <h2 className="text-xl font-bold text-gray-800">Detalhes do Evento</h2>
+          <div className="fixed inset-0 z-50 overflow-y-auto flex items-center justify-center">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 backdrop-blur-sm bg-black/30"
+              onClick={() => setShowDetailsModal(false)}
+            />
+            
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.9 }}
+              className="bg-white rounded-lg shadow-xl z-10 max-w-2xl w-full mx-4 relative"
+            >
+              {/* Cabeçalho do modal */}
+              <div className="flex justify-between items-center p-5 border-b">
+                <h3 className="text-lg font-bold text-gray-800">
+                  Detalhes do Evento
+                </h3>
               <button
                 onClick={() => setShowDetailsModal(false)}
-                className="text-gray-400 hover:text-gray-500"
+                  className="text-gray-500 hover:text-gray-700 transition-colors"
               >
-                <FaTimes />
+                  <FiX size={20} />
               </button>
             </div>
 
-            <div className="p-4 space-y-4">
+              {/* Corpo do modal */}
+              <div className="p-5">
+                <h2 className="text-xl font-bold text-gray-800 mb-2">{selectedEvento.titulo}</h2>
+                
               {isHoje(selectedEvento.dataInicio, selectedEvento.dataFim) && (
-                <div className="bg-green-100 text-green-800 text-xs font-medium px-2 py-1 rounded-full inline-block mb-2">
+                  <div className="bg-green-100 text-green-800 text-xs font-medium px-2 py-1 rounded-full inline-block mb-4">
                   Acontecendo hoje
                 </div>
               )}
               
-              <h3 className="text-lg font-semibold text-gray-800">{selectedEvento.titulo}</h3>
-              
-              <div className="space-y-2 mb-3">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                 <div className="flex items-center text-gray-600">
                   <FaCalendarAlt className="mr-2 text-blue-600" />
-                  <span>Início: {formatarData(selectedEvento.dataInicio)}</span>
+                    <span>Data de Início: {formatarData(selectedEvento.dataInicio)}</span>
                 </div>
                 <div className="flex items-center text-gray-600">
                   <FaCalendarAlt className="mr-2 text-blue-600" />
-                  <span>Término: {formatarData(selectedEvento.dataFim)}</span>
+                    <span>Data de Término: {formatarData(selectedEvento.dataFim)}</span>
                 </div>
                 <div className="flex items-center text-gray-600">
                   <FaMapMarkerAlt className="mr-2 text-blue-600" />
@@ -257,23 +511,161 @@ const EventosTabs: FC<EventosTabsProps> = ({ containerClassName = "", userRole }
                 </div>
               </div>
               
-              <div className="bg-gray-50 p-3 rounded-lg">
+                <div className="mb-6">
                 <h4 className="font-medium text-gray-700 mb-2">Descrição:</h4>
-                <p className="text-gray-600">{selectedEvento.descricao}</p>
+                  <p className="text-gray-600 bg-gray-50 p-3 rounded-lg">{selectedEvento.descricao}</p>
+                </div>
+                
+                {/* Confirmação de Presença para ALUNO e PERSONAL */}
+                {(userRole === 'ALUNO' || userRole === 'PERSONAL') && !eventoPassado(selectedEvento.dataFim) && (
+                  <div className="mb-3 bg-blue-50 p-4 rounded-lg">
+                    <h4 className="font-medium text-gray-700 mb-2">Confirmação de presença:</h4>
+                    
+                    {loadingConfirmacao ? (
+                      <div className="flex justify-center py-2">
+                        <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-700"></div>
+                      </div>
+                    ) : isPresencaConfirmada ? (
+                      <div>
+                        <div className="flex items-center text-green-700 mb-3">
+                          <FaCheck className="mr-2" />
+                          <span>Você confirmou presença neste evento!</span>
+                        </div>
+                        
+                        <div className="mb-3">
+                          <label className="block text-sm font-medium text-gray-700 mb-1">
+                            Seu comentário:
+                          </label>
+                          <textarea
+                            className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                            placeholder="Adicione um comentário (opcional)"
+                            rows={2}
+                            value={comentario}
+                            onChange={(e) => setComentario(e.target.value)}
+                            disabled={loadingConfirmacao}
+                          />
+                        </div>
+                        
+                        <div className="flex space-x-2">
+                          <button
+                            onClick={confirmarPresenca}
+                            className="px-3 py-1 bg-blue-600 text-white rounded-md hover:bg-blue-700 flex items-center"
+                            disabled={loadingConfirmacao}
+                          >
+                            Atualizar comentário
+                          </button>
+                          
+                          <button
+                            onClick={cancelarPresenca}
+                            className="px-3 py-1 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 flex items-center"
+                            disabled={loadingConfirmacao}
+                          >
+                            <FaTimes className="mr-1" /> Cancelar presença
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <div>
+                        <p className="text-gray-600 mb-3">
+                          Você ainda não confirmou presença. Gostaria de confirmar?
+                        </p>
+                        
+                        <div className="mb-3">
+                          <label className="block text-sm font-medium text-gray-700 mb-1">
+                            Comentário (opcional):
+                          </label>
+                          <textarea
+                            className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                            placeholder="Adicione um comentário opcional"
+                            rows={2}
+                            value={comentario}
+                            onChange={(e) => setComentario(e.target.value)}
+                            disabled={loadingConfirmacao}
+                          />
+                        </div>
+                        
+                        <button
+                          onClick={confirmarPresenca}
+                          className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 flex items-center"
+                          disabled={loadingConfirmacao}
+                        >
+                          <FaCheck className="mr-2" /> Confirmar presença
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                )}
+                
+                {/* Lista de Presenças Confirmadas para ACADEMIA */}
+                {userRole === 'ACADEMIA' && (
+                  <div>
+                    <div className="flex items-center justify-between mb-3">
+                      <h4 className="font-medium text-gray-700">Presenças Confirmadas:</h4>
+                      <span className="bg-green-100 text-green-800 text-xs font-medium px-2 py-1 rounded-full">
+                        {presencasConfirmadas.length} confirmações
+                      </span>
+                    </div>
+                    
+                    {loadingPresencas ? (
+                      <div className="flex justify-center py-4">
+                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-red-700"></div>
+                      </div>
+                    ) : presencasConfirmadas.length === 0 ? (
+                      <div className="text-center py-6 bg-gray-50 rounded-lg text-gray-500">
+                        <FaUserCheck className="mx-auto mb-2 text-gray-400 text-xl" />
+                        <p>Nenhuma presença confirmada ainda</p>
+                      </div>
+                    ) : (
+                      <div className="max-h-60 overflow-y-auto border rounded-lg">
+                        <table className="min-w-full divide-y divide-gray-200">
+                          <thead className="bg-gray-50 sticky top-0">
+                            <tr>
+                              <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nome</th>
+                              <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Perfil</th>
+                              <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Data</th>
+                            </tr>
+                          </thead>
+                          <tbody className="bg-white divide-y divide-gray-200">
+                            {presencasConfirmadas.map((presenca) => (
+                              <tr key={presenca.id} className="hover:bg-gray-50">
+                                <td className="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-900">
+                                  {presenca.usuario.name}
+                                </td>
+                                <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
+                                  <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                                    presenca.usuario.role === 'ALUNO' 
+                                      ? 'bg-blue-100 text-blue-800' 
+                                      : 'bg-green-100 text-green-800'
+                                  }`}>
+                                    {presenca.usuario.role === 'ALUNO' ? 'Aluno' : 'Personal'}
+                                  </span>
+                                </td>
+                                <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
+                                  {new Date(presenca.createdAt).toLocaleDateString('pt-BR')}
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
               
-              <div className="flex justify-end pt-2">
+              {/* Rodapé do modal */}
+              <div className="p-5 border-t flex justify-end">
                 <button
                   onClick={() => setShowDetailsModal(false)}
-                  className="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300"
+                  className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
                 >
                   Fechar
                 </button>
               </div>
-            </div>
-          </div>
+            </motion.div>
         </div>
       )}
+      </AnimatePresence>
     </div>
   );
 };
