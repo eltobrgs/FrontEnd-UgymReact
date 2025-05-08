@@ -1,5 +1,5 @@
 import { FC, useState, useEffect } from 'react';
-import { FaUserTie, FaStar, FaEnvelope, FaPhone, FaIdCard, FaMapMarkerAlt, FaClock } from 'react-icons/fa';
+import { FaUserTie, FaEnvelope, FaIdCard, FaMapMarkerAlt, FaClock, FaExclamationCircle } from 'react-icons/fa';
 import { connectionUrl } from '../../../config/connection';
 
 interface Personal {
@@ -7,11 +7,10 @@ interface Personal {
   name: string;
   email: string;
   cref?: string;
-  specialization?: string;
-  yearsOfExperience?: number;
+  specializations?: string[];
+  yearsOfExperience?: string;
   workLocation?: string;
-  pricePerHour?: number;
-  phone?: string;
+  pricePerHour?: string;
   workSchedule?: string;
   rating?: number;
   imageUrl?: string;
@@ -24,112 +23,63 @@ interface PersonalResponsavelProps {
 const PersonalResponsavel: FC<PersonalResponsavelProps> = ({ containerClassName = "" }) => {
   const [personal, setPersonal] = useState<Personal | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const token = localStorage.getItem('token');
 
   useEffect(() => {
     const fetchPersonalResponsavel = async () => {
+      if (!token) return;
+      
       try {
         setIsLoading(true);
+        setError(null);
         
-        // Buscar dados do usuário (aluno)
-        const userResponse = await fetch(`${connectionUrl}/aluno/preferencias`, {
+        // Usar o novo endpoint para buscar o personal responsável
+        const response = await fetch(`${connectionUrl}/aluno/personal-responsavel`, {
           headers: {
             'Authorization': `Bearer ${token}`
           }
         });
         
-        if (!userResponse.ok) {
-          console.error(`Erro ao buscar preferências do aluno: ${userResponse.status}`);
-          setDadosExemplo();
-          return;
-        }
-        
-        const userData = await userResponse.json();
-        
-        if (!userData.personalId) {
-          console.log('Aluno sem personal vinculado');
-          setPersonal(null);
-          setIsLoading(false);
-          return;
-        }
-        
-        // Buscar dados do personal
-        const response = await fetch(`${connectionUrl}/personal/detalhes/${userData.personalId}`, {
-          headers: {
-            'Authorization': `Bearer ${token}`
-          }
-        });
-
         if (!response.ok) {
-          console.error(`Erro ao buscar dados do personal: ${response.status}`);
-          setDadosExemplo();
-          return;
+          // Se o erro for 404, significa que o aluno não tem personal
+          if (response.status === 404) {
+            setPersonal(null);
+            setIsLoading(false);
+            return;
+          }
+          
+          const errorData = await response.json();
+          throw new Error(errorData.error || 'Erro ao buscar o personal responsável');
         }
 
         const data = await response.json();
+        
         setPersonal({
-          id: data.user.id,
-          name: data.user.name,
-          email: data.user.email,
+          id: data.id,
+          name: data.name,
+          email: data.email,
           cref: data.cref,
-          specialization: data.specialization,
+          specializations: data.specializations,
           yearsOfExperience: data.yearsOfExperience,
           workLocation: data.workLocation,
           pricePerHour: data.pricePerHour,
           workSchedule: data.workSchedule,
           rating: 4.8, // Rating fixo para exemplo
-          phone: data.phone || "Não informado",
           imageUrl: data.imageUrl
         });
       } catch (error) {
         console.error('Erro ao buscar personal responsável:', error);
-        setDadosExemplo();
+        setError(error instanceof Error ? error.message : 'Erro desconhecido');
+        setPersonal(null);
       } finally {
         setIsLoading(false);
       }
     };
-    
-    const setDadosExemplo = () => {
-      // Dados de exemplo em caso de erro
-      setPersonal({
-        id: 1,
-        name: "Carlos Mendes",
-        email: "carlos.mendes@exemplo.com",
-        cref: "123456-G/SP",
-        specialization: "Musculação e Hipertrofia",
-        yearsOfExperience: 8,
-        workLocation: "Academia Fitness Total",
-        pricePerHour: 120,
-        phone: "(11) 98765-4321",
-        workSchedule: "Seg-Sex: 6h às 21h",
-        rating: 4.9,
-        imageUrl: ""
-      });
-    };
 
-    if (token) {
-      fetchPersonalResponsavel();
-    }
+    fetchPersonalResponsavel();
   }, [token]);
 
-  // Renderizar estrelas de avaliação
-  const renderStars = (rating: number) => {
-    const stars = [];
-    const fullStars = Math.floor(rating);
-    const hasHalfStar = rating % 1 >= 0.5;
-
-    for (let i = 0; i < 5; i++) {
-      if (i < fullStars) {
-        stars.push(<FaStar key={i} className="text-yellow-400" />);
-      } else if (i === fullStars && hasHalfStar) {
-        stars.push(<FaStar key={i} className="text-yellow-400 opacity-50" />);
-      } else {
-        stars.push(<FaStar key={i} className="text-gray-300" />);
-      }
-    }
-
-    return stars;
-  };
 
   return (
     <div className={`bg-white rounded-lg shadow-md overflow-hidden ${containerClassName}`}>
@@ -141,6 +91,11 @@ const PersonalResponsavel: FC<PersonalResponsavelProps> = ({ containerClassName 
         {isLoading ? (
           <div className="flex justify-center items-center py-8">
             <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-red-600"></div>
+          </div>
+        ) : error ? (
+          <div className="text-center py-8">
+            <FaExclamationCircle className="text-red-500 text-3xl mx-auto mb-2" />
+            <p className="text-red-500">{error}</p>
           </div>
         ) : !personal ? (
           <div className="text-center py-8">
@@ -165,14 +120,8 @@ const PersonalResponsavel: FC<PersonalResponsavelProps> = ({ containerClassName 
               </div>
               <div>
                 <h3 className="text-lg font-semibold text-gray-800">{personal.name}</h3>
-                {personal.specialization && (
-                  <p className="text-gray-600">{personal.specialization}</p>
-                )}
-                {personal.rating && (
-                  <div className="flex mt-1">
-                    {renderStars(personal.rating)}
-                    <span className="ml-1 text-sm text-gray-600">{personal.rating.toFixed(1)}</span>
-                  </div>
+                {personal.specializations && personal.specializations.length > 0 && (
+                  <p className="text-gray-600">{personal.specializations.join(', ')}</p>
                 )}
               </div>
             </div>
@@ -182,13 +131,6 @@ const PersonalResponsavel: FC<PersonalResponsavelProps> = ({ containerClassName 
                 <FaEnvelope className="mr-2 text-red-600" />
                 <span>{personal.email}</span>
               </div>
-              
-              {personal.phone && (
-                <div className="flex items-center text-gray-700">
-                  <FaPhone className="mr-2 text-red-600" />
-                  <span>{personal.phone}</span>
-                </div>
-              )}
 
               {personal.cref && (
                 <div className="flex items-center text-gray-700">

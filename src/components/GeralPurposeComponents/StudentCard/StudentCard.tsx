@@ -1,5 +1,4 @@
 import { FC, useState } from 'react';
-import { FiEdit2 } from 'react-icons/fi';
 import { useUser } from '../../../contexts/UserContext';
 import AlunoProfileSetup from '../../../pages/AcademiaPages/AlunoProfileSetup';
 import { FaWeight, FaRulerVertical, FaRunning, FaBullseye, FaBirthdayCake, FaUser, FaDumbbell } from 'react-icons/fa';
@@ -55,11 +54,6 @@ const StudentCard: FC<StudentCardProps> = ({
     setShowDetailModal(true);
   };
 
-  const handleEditProfile = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    setShowProfileSetup(true);
-  };
-
   const handleProfileSetupSuccess = () => {
     setShowProfileSetup(false);
   };
@@ -93,14 +87,6 @@ const StudentCard: FC<StudentCardProps> = ({
                     title="Gerenciar Treino"
                   >
                     <FaDumbbell size={16} color="white" />
-                  </button>
-                )}
-                {userData?.role === 'ACADEMIA' && (
-                  <button
-                    className="bg-red-600 p-2 rounded-full hover:bg-red-700 transition-colors z-10"
-                    onClick={handleEditProfile}
-                  >
-                    <FiEdit2 size={16} color="white" />
                   </button>
                 )}
               </div>

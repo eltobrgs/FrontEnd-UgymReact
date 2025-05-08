@@ -10,14 +10,13 @@ import {
   FaBirthdayCake,
   FaVenusMars,
   FaRunning,
-  FaBookMedical,
   FaUserMd,
   FaClipboardList
 } from 'react-icons/fa';
 import { useUser } from '../../contexts/UserContext';
-import ProfileSetup from '../AcademiaPages/AlunoProfileSetup';
 import { connectionUrl } from '../../config/connection';
 import { useAuth } from '../../contexts/AuthContext';
+import AlunoProfileEdit from './AlunoProfileEdit';
 
 interface AlunoProfileProps {
   userName: string;
@@ -32,7 +31,7 @@ interface ReportsByType {
 const AlunoProfile: FC<AlunoProfileProps> = () => {
   const { userData } = useUser();
   const { token } = useAuth();
-  const [showProfileSetup, setShowProfileSetup] = useState(false);
+  const [showProfileEdit, setShowProfileEdit] = useState(false);
   const [reports, setReports] = useState<ReportsByType>({});
   const [loading, setLoading] = useState(true);
 
@@ -67,12 +66,12 @@ const AlunoProfile: FC<AlunoProfileProps> = () => {
 
   const handleEditProfile = () => {
     if (userData?.id) {
-      setShowProfileSetup(true);
+      setShowProfileEdit(true);
     }
   };
 
-  const handleProfileSetupSuccess = () => {
-    setShowProfileSetup(false);
+  const handleProfileEditSuccess = () => {
+    setShowProfileEdit(false);
   };
 
   // Obter o valor mais recente do relatório de peso
@@ -217,11 +216,7 @@ const AlunoProfile: FC<AlunoProfileProps> = () => {
             <div className="space-y-4">
               <div className="flex items-center space-x-3 text-gray-600">
                 <FaHeartbeat className="text-red-600" />
-                <span>Condição de Saúde: {userData?.preferenciasAluno?.healthCondition || 'Não informada'}</span>
-              </div>
-              <div className="flex items-center space-x-3 text-gray-600">
-                <FaBookMedical className="text-red-600" />
-                <span>Condições Médicas: {userData?.preferenciasAluno?.medicalConditions || 'Nenhuma'}</span>
+                <span>Condições de Saúde: {userData?.preferenciasAluno?.healthCondition || 'Não informada'}</span>
               </div>
               <div className="flex items-center space-x-3 text-gray-600">
                 <FaUserMd className="text-red-600" />
@@ -242,13 +237,11 @@ const AlunoProfile: FC<AlunoProfileProps> = () => {
         </div>
       </div>
 
-      {showProfileSetup && (
-        <ProfileSetup
-          isOpen={showProfileSetup}
-          onClose={() => setShowProfileSetup(false)}
-          onSuccess={handleProfileSetupSuccess}
-          userId={userData?.id?.toString() || ''}
-          initialData={userData?.preferenciasAluno}
+      {showProfileEdit && (
+        <AlunoProfileEdit
+          isOpen={showProfileEdit}
+          onClose={() => setShowProfileEdit(false)}
+          onSuccess={handleProfileEditSuccess}
         />
       )}
     </>

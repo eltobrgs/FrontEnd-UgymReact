@@ -1,55 +1,81 @@
-import { FC, useState, FormEvent } from 'react';
+import { FC, useState, FormEvent, useEffect } from 'react';
 import Input from '../../components/GeralPurposeComponents/input/Input';
 import Button from '../../components/GeralPurposeComponents/Button/Button';
 import Modal from '../../components/GeralPurposeComponents/Modal/Modal';
 import Swal from 'sweetalert2';
 import { connectionUrl } from '../../config/connection';
+import { useUser } from '../../contexts/UserContext';
 import { 
   FaBirthdayCake, 
   FaVenusMars, 
   FaBullseye, 
   FaRunning,
   FaHeartbeat,
-  FaUserPlus
+  FaDumbbell,
+  FaUserEdit
 } from 'react-icons/fa';
 
-interface ProfileSetupModalProps {
+interface ProfileEditModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSuccess: () => void;
-  userId: string;
-  academiaId?: number | null;
-  temporaryToken?: string | null;
-  initialData?: {
-    birthDate: string;
-    gender: string;
-    goal: string;
-    healthCondition: string;
-    experience: string;
-    activityLevel: string;
-    physicalLimitations: string;
-  };
 }
 
-const AlunoProfileSetup: FC<ProfileSetupModalProps> = ({ 
+const AlunoProfileEdit: FC<ProfileEditModalProps> = ({ 
   isOpen, 
   onClose, 
-  onSuccess, 
-  userId, 
-  academiaId, 
-  temporaryToken,
-  initialData 
+  onSuccess
 }) => {
+  const { userData, fetchUserData } = useUser();
   const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
-    birthDate: initialData?.birthDate || '',
-    gender: initialData?.gender || '',
-    goal: initialData?.goal || '',
-    healthCondition: initialData?.healthCondition || '',
-    experience: initialData?.experience || '',
-    activityLevel: initialData?.activityLevel || '',
-    physicalLimitations: initialData?.physicalLimitations || ''
+    birthDate: '',
+    gender: '',
+    goal: '',
+    healthCondition: '',
+    experience: '',
+    activityLevel: '',
+    physicalLimitations: ''
   });
+
+  // Carregar dados atuais do usuário
+  useEffect(() => {
+    if (isOpen && userData?.preferenciasAluno) {
+      // Formatar data de nascimento para o formato esperado pelo input date
+      let formattedDate = '';
+      if (userData.preferenciasAluno.birthDate) {
+        // Se vier como DD/MM/YYYY, converter para YYYY-MM-DD
+        if (userData.preferenciasAluno.birthDate.includes('/')) {
+          const [day, month, year] = userData.preferenciasAluno.birthDate.split('/');
+          formattedDate = `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+        } 
+        // Se vier como data ISO
+        else if (userData.preferenciasAluno.birthDate.includes('T')) {
+          formattedDate = userData.preferenciasAluno.birthDate.split('T')[0];
+        }
+        // Caso contrário, usar como está
+        else {
+          formattedDate = userData.preferenciasAluno.birthDate;
+        }
+      }
+
+      setFormData({
+        birthDate: formattedDate,
+        gender: userData.preferenciasAluno.gender || '',
+        goal: userData.preferenciasAluno.goal || '',
+        healthCondition: userData.preferenciasAluno.healthCondition || '',
+        experience: userData.preferenciasAluno.experience || '',
+        activityLevel: userData.preferenciasAluno.activityLevel || '',
+        physicalLimitations: userData.preferenciasAluno.physicalLimitations || ''
+      });
+      
+      console.log('Dados carregados:', {
+        birthDate: formattedDate,
+        gender: userData.preferenciasAluno.gender,
+        activityLevel: userData.preferenciasAluno.activityLevel
+      });
+    }
+  }, [isOpen, userData]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -64,47 +90,44 @@ const AlunoProfileSetup: FC<ProfileSetupModalProps> = ({
     setIsLoading(true);
     
     try {
-      // Usar token temporário se disponível, caso contrário usar o token normal
-      const token = temporaryToken || localStorage.getItem('token');
+      const token = localStorage.getItem('token');
       
       if (!token) {
         throw new Error('Token não encontrado');
       }
 
-      console.log("Configurando perfil do aluno. AcademiaId:", academiaId);
-      console.log("Token utilizado:", token.substring(0, 15) + "...");
-      console.log("UserId:", userId);
-
-      // Preparar dados para envio incluindo o ID do aluno quando necessário
-      const dataToSend = {
-        ...formData,
-        academiaId: academiaId // Garantir que o academiaId seja incluído
-      };
-
-      // Se o userId for fornecido e for diferente do usuário logado, adicionar como alunoId
-      const userData = JSON.parse(localStorage.getItem('user') || '{}');
-      if (userId && userData.id !== userId) {
-        (dataToSend as any).alunoId = userId;
+      // Preparar dados para envio
+      // Converter data para formato DD/MM/YYYY que o backend espera
+      let formattedData = {...formData};
+      
+      if (formData.birthDate) {
+        const [year, month, day] = formData.birthDate.split('-');
+        formattedData.birthDate = `${day}/${month}/${year}`;
       }
 
-      // Enviar dados para a API
-      const response = await fetch(`${connectionUrl}/aluno/preferencias`, {
-        method: 'POST',
+      console.log('Enviando dados:', formattedData);
+
+      // Usar o endpoint de edição
+      const response = await fetch(`${connectionUrl}/aluno/editar-perfil`, {
+        method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`
         },
-        body: JSON.stringify(dataToSend)
+        body: JSON.stringify(formattedData)
       });
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error || 'Erro ao salvar preferências');
+        throw new Error(errorData.error || 'Erro ao atualizar perfil');
       }
+
+      // Atualizar os dados do usuário no contexto
+      await fetchUserData();
 
       await Swal.fire({
         title: 'Sucesso!',
-        text: 'Cadastro realizado com sucesso!',
+        text: 'Perfil atualizado com sucesso!',
         icon: 'success',
         timer: 2000,
         showConfirmButton: false
@@ -114,10 +137,10 @@ const AlunoProfileSetup: FC<ProfileSetupModalProps> = ({
       onClose();
 
     } catch (error) {
-      console.error('Erro ao salvar perfil:', error);
+      console.error('Erro ao atualizar perfil:', error);
       Swal.fire({
         title: 'Erro!',
-        text: error instanceof Error ? error.message : 'Falha ao salvar preferências',
+        text: error instanceof Error ? error.message : 'Falha ao atualizar perfil',
         icon: 'error'
       });
     } finally {
@@ -129,14 +152,14 @@ const AlunoProfileSetup: FC<ProfileSetupModalProps> = ({
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title="Configurar Perfil do Aluno"
+      title="Editar Perfil do Aluno"
     >
       <div className="p-4 overflow-y-auto max-h-[calc(90vh-100px)]">
         <div className="mb-6 flex items-center justify-center">
           <div className="w-12 h-12 rounded-full bg-red-600 text-white flex items-center justify-center">
-            <FaUserPlus size={24} />
+            <FaUserEdit size={24} />
           </div>
-          <h2 className="ml-4 text-xl font-bold text-gray-800">Informações Iniciais</h2>
+          <h2 className="ml-4 text-xl font-bold text-gray-800">Informações do Perfil</h2>
         </div>
 
         <form onSubmit={handleFormSubmit} className="space-y-6">
@@ -209,6 +232,7 @@ const AlunoProfileSetup: FC<ProfileSetupModalProps> = ({
               name="experience"
               value={formData.experience}
               onChange={handleChange}
+              icon={<FaDumbbell size={20} />}
               placeholder="Sua experiência com exercícios"
             />
           </div>
@@ -230,7 +254,8 @@ const AlunoProfileSetup: FC<ProfileSetupModalProps> = ({
             </div>
             
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center">
+                <FaUserEdit className="mr-2 text-red-600" size={20} />
                 Restrições Físicas
               </label>
               <textarea
@@ -256,7 +281,7 @@ const AlunoProfileSetup: FC<ProfileSetupModalProps> = ({
               type="submit"
               isLoading={isLoading}
             >
-              Concluir Cadastro
+              Salvar Alterações
             </Button>
           </div>
         </form>
@@ -265,4 +290,4 @@ const AlunoProfileSetup: FC<ProfileSetupModalProps> = ({
   );
 };
 
-export default AlunoProfileSetup; 
+export default AlunoProfileEdit; 

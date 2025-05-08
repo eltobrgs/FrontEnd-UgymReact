@@ -18,7 +18,7 @@ import Button from '../../components/GeralPurposeComponents/Button/Button';
 import Swal from 'sweetalert2';
 import { useUser } from '../../contexts/UserContext';
 import { connectionUrl } from '../../config/connection';
-import PersonalProfileSetup from '../AcademiaPages/PersonalProfileSetup';
+import PersonalProfileEdit from './PersonalProfileEdit';
 
 interface PersonalData {
   user: {
@@ -46,7 +46,7 @@ const PersonalProfile: FC = () => {
   const [personalData, setPersonalData] = useState<PersonalData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [showProfileSetup, setShowProfileSetup] = useState(false);
+  const [showProfileEdit, setShowProfileEdit] = useState(false);
 
   const fetchPersonalData = useCallback(async () => {
     try {
@@ -108,11 +108,11 @@ const PersonalProfile: FC = () => {
   }, [fetchPersonalData]);
 
   const handleEditProfile = () => {
-    setShowProfileSetup(true);
+    setShowProfileEdit(true);
   };
 
-  const handleProfileSetupSuccess = () => {
-    setShowProfileSetup(false);
+  const handleProfileEditSuccess = () => {
+    setShowProfileEdit(false);
     fetchPersonalData();
   };
 
@@ -259,23 +259,24 @@ const PersonalProfile: FC = () => {
           </div>
         </div>
 
-        {/* Botão de Edição */}
-        <div className="fixed bottom-8 right-8">
-          <button
-            className="absolute bottom-0 right-0 bg-red-600 p-2 rounded-full hover:bg-red-700 transition-colors"
-            onClick={handleEditProfile}
-          >
-            <FiEdit2 size={16} />
-          </button>
-        </div>
+        {/* Mostrar botão de edição apenas se o perfil for do próprio usuário */}
+        {userData?.id === (id ? parseInt(id) : userData?.id) && (
+          <div className="fixed bottom-8 right-8">
+            <button
+              className="absolute bottom-0 right-0 bg-red-600 p-2 rounded-full hover:bg-red-700 transition-colors"
+              onClick={handleEditProfile}
+            >
+              <FiEdit2 size={16} />
+            </button>
+          </div>
+        )}
       </div>
 
-      {showProfileSetup && (
-        <PersonalProfileSetup
-          isOpen={showProfileSetup}
-          onClose={() => setShowProfileSetup(false)}
-          onSuccess={handleProfileSetupSuccess}
-          userId={userData?.id?.toString() || ''}
+      {showProfileEdit && (
+        <PersonalProfileEdit
+          isOpen={showProfileEdit}
+          onClose={() => setShowProfileEdit(false)}
+          onSuccess={handleProfileEditSuccess}
         />
       )}
     </>

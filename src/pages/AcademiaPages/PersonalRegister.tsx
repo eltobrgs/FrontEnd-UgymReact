@@ -19,8 +19,7 @@ const PersonalRegister: FC = () => {
     email: '',
     password: '',
     confirmPassword: '',
-    cref: '',
-    specialization: ''
+    cref: ''
   });
 
   useEffect(() => {
@@ -59,7 +58,6 @@ const PersonalRegister: FC = () => {
           email: formData.email,
           password: formData.password,
           cref: formData.cref,
-          specialization: formData.specialization,
           academiaId: academiaId
         }),
       });
@@ -110,8 +108,7 @@ const PersonalRegister: FC = () => {
       email: '',
       password: '',
       confirmPassword: '',
-      cref: '',
-      specialization: ''
+      cref: ''
     });
     
     // Mostrar mensagem de sucesso
@@ -161,17 +158,6 @@ const PersonalRegister: FC = () => {
                 onChange={handleChange}
                 icon={<FiBriefcase size={20} />}
                 placeholder="Seu número de CREF"
-                required
-              />
-
-              <Input
-                label="Especialização"
-                type="text"
-                name="specialization"
-                value={formData.specialization}
-                onChange={handleChange}
-                icon={<FiBriefcase size={20} />}
-                placeholder="Sua principal especialização"
                 required
               />
 

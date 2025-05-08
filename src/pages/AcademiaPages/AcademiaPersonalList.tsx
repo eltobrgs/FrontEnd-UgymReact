@@ -11,7 +11,6 @@ interface Personal {
   name: string;
   email: string;
   cref: string;
-  specialization: string;
   yearsOfExperience?: string;
   workLocation?: string;
   pricePerHour?: string;
@@ -89,12 +88,12 @@ const AcademiaPersonalList = () => {
       const filtered = personals.filter((personal) => {
         const searchableFields = [
           personal.name.toLowerCase(),
-          personal.specialization.toLowerCase(),
-          personal.email.toLowerCase()
+          personal.email.toLowerCase(),
+          personal.specializations?.join(',').toLowerCase()
         ];
         
         const term = searchTerm.toLowerCase();
-        return searchableFields.some(field => field.includes(term));
+        return searchableFields.some(field => field && field.includes(term));
       });
       setFilteredPersonals(filtered);
     }
@@ -143,7 +142,6 @@ const AcademiaPersonalList = () => {
               id={personal.id}
               name={personal.name}
               specializations={personal.specializations || []}
-              specialization={personal.specialization || ""}
               yearsOfExperience={personal.yearsOfExperience || "N/A"}
               workLocation={personal.workLocation || "N/A"}
               pricePerHour={personal.pricePerHour || "N/A"}

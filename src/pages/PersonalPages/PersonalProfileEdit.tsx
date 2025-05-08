@@ -1,4 +1,10 @@
-import { FC, useState, FormEvent } from 'react';
+import { FC, useState, FormEvent, useEffect } from 'react';
+import Input from '../../components/GeralPurposeComponents/input/Input';
+import Button from '../../components/GeralPurposeComponents/Button/Button';
+import Modal from '../../components/GeralPurposeComponents/Modal/Modal';
+import Swal from 'sweetalert2';
+import { connectionUrl } from '../../config/connection';
+import { useUser } from '../../contexts/UserContext';
 import { 
   FaBriefcase, 
   FaBirthdayCake, 
@@ -11,63 +17,110 @@ import {
   FaCertificate, 
   FaUserTie, 
   FaClock, 
-  FaUserPlus 
+  FaUserEdit 
 } from 'react-icons/fa';
-import Input from '../../components/GeralPurposeComponents/input/Input';
-import Button from '../../components/GeralPurposeComponents/Button/Button';
-import Modal from '../../components/GeralPurposeComponents/Modal/Modal';
-import Swal from 'sweetalert2';
-import { connectionUrl } from '../../config/connection';
 
-interface PersonalProfileSetupModalProps {
+interface PersonalProfileEditModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSuccess: () => void;
-  userId: string;
-  academiaId?: number | null;
-  temporaryToken?: string | null;
-  initialData?: {
-    birthDate: string;
-    gender: string;
-    specializations: string[];
-    yearsOfExperience: string;
-    workSchedule: string;
-    certifications: string[];
-    biography: string;
-    workLocation: string;
-    pricePerHour: string;
-    languages: string[];
-    instagram?: string;
-    linkedin?: string;
-  };
 }
 
-const PersonalProfileSetup: FC<PersonalProfileSetupModalProps> = ({
+const PersonalProfileEdit: FC<PersonalProfileEditModalProps> = ({
   isOpen,
   onClose,
-  onSuccess,
-  userId,
-  academiaId,
-  temporaryToken,
-  initialData
+  onSuccess
 }) => {
+  const { userData, fetchUserData } = useUser();
   const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
-    birthDate: initialData?.birthDate || '',
-    gender: initialData?.gender || '',
-    specializations: initialData?.specializations?.join(', ') || '',
-    yearsOfExperience: initialData?.yearsOfExperience || '',
-    workSchedule: initialData?.workSchedule || '',
-    certifications: initialData?.certifications?.join(', ') || '',
-    biography: initialData?.biography || '',
-    workLocation: initialData?.workLocation || '',
-    pricePerHour: initialData?.pricePerHour || '',
-    languages: initialData?.languages?.join(', ') || '',
+    birthDate: '',
+    gender: '',
+    specializations: '',
+    yearsOfExperience: '',
+    workSchedule: '',
+    certifications: '',
+    biography: '',
+    workLocation: '',
+    pricePerHour: '',
+    languages: '',
     socialMedia: {
-      instagram: initialData?.instagram || '',
-      linkedin: initialData?.linkedin || ''
+      instagram: '',
+      linkedin: ''
     }
   });
+
+  // Carregar dados atuais do personal
+  useEffect(() => {
+    const fetchPersonalData = async () => {
+      if (!isOpen || !userData?.id) return;
+      
+      try {
+        const token = localStorage.getItem('token');
+        
+        if (!token) {
+          throw new Error('Token não encontrado');
+        }
+        
+        const response = await fetch(`${connectionUrl}/personal/detalhes/${userData.id}`, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        });
+        
+        if (!response.ok) {
+          throw new Error('Falha ao buscar dados do personal');
+        }
+        
+        const data = await response.json();
+        
+        // Formatar data de nascimento para o formato esperado pelo input date
+        let formattedDate = '';
+        if (data.birthDate) {
+          // Se vier como DD/MM/YYYY, converter para YYYY-MM-DD
+          if (data.birthDate.includes('/')) {
+            const [day, month, year] = data.birthDate.split('/');
+            formattedDate = `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+          } 
+          // Se vier como data ISO
+          else if (data.birthDate.includes('T')) {
+            formattedDate = data.birthDate.split('T')[0];
+          }
+          // Caso contrário, usar como está
+          else {
+            formattedDate = data.birthDate;
+          }
+        }
+        
+        setFormData({
+          birthDate: formattedDate,
+          gender: data.gender || '',
+          specializations: data.specializations?.join(', ') || '',
+          yearsOfExperience: data.yearsOfExperience || '',
+          workSchedule: data.workSchedule || '',
+          certifications: data.certifications?.join(', ') || '',
+          biography: data.biography || '',
+          workLocation: data.workLocation || '',
+          pricePerHour: data.pricePerHour || '',
+          languages: data.languages?.join(', ') || '',
+          socialMedia: {
+            instagram: data.instagram || '',
+            linkedin: data.linkedin || ''
+          }
+        });
+        
+        console.log('Dados carregados do personal:', {
+          birthDate: formattedDate,
+          gender: data.gender
+        });
+      } catch (error) {
+        console.error('Erro ao buscar dados do personal:', error);
+      }
+    };
+    
+    fetchPersonalData();
+  }, [isOpen, userData]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -93,37 +146,56 @@ const PersonalProfileSetup: FC<PersonalProfileSetupModalProps> = ({
     setIsLoading(true);
 
     try {
-      // Usar token temporário se disponível, caso contrário usar o token normal
-      const token = temporaryToken || localStorage.getItem('token');
+      const token = localStorage.getItem('token');
       
-      if (!token || !userId) {
-        throw new Error('Dados de autenticação não encontrados');
+      if (!token) {
+        throw new Error('Token não encontrado');
       }
 
-      const response = await fetch(`${connectionUrl}/personal/preferencias`, {
-        method: 'POST',
+      // Preparando os dados para envio
+      const dataToSend: any = {
+        specializations: formData.specializations.split(',').map(s => s.trim()).filter(Boolean),
+        yearsOfExperience: formData.yearsOfExperience,
+        workSchedule: formData.workSchedule,
+        certifications: formData.certifications.split(',').map(c => c.trim()).filter(Boolean),
+        biography: formData.biography,
+        workLocation: formData.workLocation,
+        pricePerHour: formData.pricePerHour,
+        languages: formData.languages.split(',').map(l => l.trim()).filter(Boolean),
+        instagram: formData.socialMedia.instagram.trim() || null,
+        linkedin: formData.socialMedia.linkedin.trim() || null,
+        gender: formData.gender
+      };
+
+      // Converter data para formato DD/MM/YYYY se fornecida
+      if (formData.birthDate) {
+        const [year, month, day] = formData.birthDate.split('-');
+        dataToSend.birthDate = `${day}/${month}/${year}`;
+      }
+
+      console.log('Enviando dados do personal:', dataToSend);
+
+      // Usando o endpoint de edição
+      const response = await fetch(`${connectionUrl}/personal/editar-perfil`, {
+        method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`
         },
-        body: JSON.stringify({
-          ...formData,
-          birthDate: formData.birthDate ? new Date(formData.birthDate).toLocaleDateString('pt-BR') : '',
-          specializations: formData.specializations.split(',').map(s => s.trim()),
-          certifications: formData.certifications.split(',').map(c => c.trim()),
-          languages: formData.languages.split(',').map(l => l.trim()),
-          academiaId: academiaId || null
-        }),
+        body: JSON.stringify(dataToSend)
       });
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error || 'Erro ao salvar preferências');
+        throw new Error(errorData.error || 'Erro ao atualizar perfil');
       }
+
+      // Atualizar os dados do usuário no contexto
+      await fetchUserData();
 
       await Swal.fire({
         title: 'Sucesso!',
-        text: 'Cadastro realizado com sucesso!',
+        text: 'Perfil atualizado com sucesso!',
         icon: 'success',
         timer: 2000,
         showConfirmButton: false
@@ -133,10 +205,10 @@ const PersonalProfileSetup: FC<PersonalProfileSetupModalProps> = ({
       onClose();
       
     } catch (error) {
-      console.error('Erro ao salvar perfil:', error);
+      console.error('Erro ao atualizar perfil:', error);
       Swal.fire({
         title: 'Erro!',
-        text: error instanceof Error ? error.message : 'Falha ao salvar perfil',
+        text: error instanceof Error ? error.message : 'Falha ao atualizar perfil',
         icon: 'error'
       });
     } finally {
@@ -148,14 +220,14 @@ const PersonalProfileSetup: FC<PersonalProfileSetupModalProps> = ({
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title="Configure seu Perfil Profissional"
+      title="Editar Perfil Profissional"
     >
       <div className="p-4 overflow-y-auto max-h-[calc(90vh-100px)]">
         <div className="mb-6 flex items-center justify-center">
           <div className="w-12 h-12 rounded-full bg-red-600 text-white flex items-center justify-center">
-            <FaUserPlus size={24} />
+            <FaUserEdit size={24} />
           </div>
-          <h2 className="ml-4 text-xl font-bold text-gray-800">Configuração Inicial</h2>
+          <h2 className="ml-4 text-xl font-bold text-gray-800">Informações Profissionais</h2>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
@@ -353,7 +425,7 @@ const PersonalProfileSetup: FC<PersonalProfileSetupModalProps> = ({
               type="submit"
               isLoading={isLoading}
             >
-              Concluir Cadastro
+              Salvar Alterações
             </Button>
           </div>
         </form>
@@ -362,4 +434,4 @@ const PersonalProfileSetup: FC<PersonalProfileSetupModalProps> = ({
   );
 };
 
-export default PersonalProfileSetup; 
+export default PersonalProfileEdit; 

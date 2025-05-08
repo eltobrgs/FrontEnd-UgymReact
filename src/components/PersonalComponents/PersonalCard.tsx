@@ -1,6 +1,5 @@
 import { FC, useState } from 'react';
 import { FaBriefcase, FaMapMarkerAlt, FaDollarSign, FaGraduationCap } from 'react-icons/fa';
-import { FiEdit2 } from 'react-icons/fi';
 import { useUser } from '../../contexts/UserContext';
 import PersonalProfileSetup from '../../pages/AcademiaPages/PersonalProfileSetup';
 import PersonalDetailModal from './PersonalDetailModal';
@@ -13,7 +12,6 @@ interface PersonalCardProps {
   workLocation: string;
   pricePerHour: string;
   cref?: string;
-  specialization?: string;
   imageUrl?: string;
   education?: string[];
   certifications?: string[];
@@ -33,7 +31,6 @@ const PersonalCard: FC<PersonalCardProps> = ({
   workLocation,
   pricePerHour,
   cref = "Não informado",
-  specialization = "",
   imageUrl = 'https://via.placeholder.com/150',
   education = [],
   certifications = [],
@@ -55,11 +52,6 @@ const PersonalCard: FC<PersonalCardProps> = ({
     setShowDetailModal(true);
   };
 
-  const handleEditProfile = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    setShowProfileSetup(true);
-  };
-
   const handleProfileSetupSuccess = () => {
     setShowProfileSetup(false);
     // Aqui você pode adicionar uma lógica para atualizar os dados do card
@@ -68,7 +60,7 @@ const PersonalCard: FC<PersonalCardProps> = ({
   // Determinar a(s) especialização(ões) a serem exibidas
   const displaySpecializations = specializations.length > 0 
     ? specializations 
-    : specialization ? [specialization] : ["Não informado"];
+    : ["Não informado"];
 
   return (
     <>
@@ -85,14 +77,6 @@ const PersonalCard: FC<PersonalCardProps> = ({
           <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black to-transparent p-4">
             <div className="flex items-center justify-between">
               <h3 className="text-xl font-bold text-white">{name}</h3>
-              {userData?.role === 'ACADEMIA' && (
-                <button
-                  className="bg-red-600 p-2 rounded-full hover:bg-red-700 transition-colors z-10"
-                  onClick={handleEditProfile}
-                >
-                  <FiEdit2 size={16} color="white" />
-                </button>
-              )}
             </div>
           </div>
         </div>
