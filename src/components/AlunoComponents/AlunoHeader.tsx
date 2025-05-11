@@ -5,9 +5,10 @@ import { motion } from 'framer-motion';
 
 interface AlunoHeaderProps {
   userName: string;
+  userImage?: string;
 }
 
-const AlunoHeader: FC<AlunoHeaderProps> = ({ userName }) => {
+const AlunoHeader: FC<AlunoHeaderProps> = ({ userName, userImage }) => {
   const navigate = useNavigate();
 
   // Componente de loading para o nome do usuário
@@ -60,7 +61,15 @@ const AlunoHeader: FC<AlunoHeaderProps> = ({ userName }) => {
             whileTap={{ scale: 0.9 }}
             aria-label="Perfil"
           >
-            <FaUser size={20} />
+            {userImage ? (
+              <img 
+                src={userImage} 
+                alt="Perfil" 
+                className="w-6 h-6 rounded-full object-cover"
+              />
+            ) : (
+              <FaUser size={20} />
+            )}
           </motion.button>
           <motion.button
             onClick={() => navigate('/settings')}

@@ -31,10 +31,13 @@ const AlunoLayout: FC<AlunoLayoutProps> = ({
         onToggle={onToggleSidebar}
         userName={userData?.name || 'Usuário'}
         userPlan={userData?.plan || 'Plano Básico'}
-        userImage={'https://via.placeholder.com/50'}
+        userImage={userData?.preferenciasAluno?.alunoAvatar}
       />
       <div className="flex-1 flex flex-col overflow-hidden">
-        <AlunoHeader userName={userData?.name || 'Usuário'} />
+        <AlunoHeader 
+          userName={userData?.name || 'Usuário'} 
+          userImage={userData?.preferenciasAluno?.alunoAvatar}
+        />
         <main className="flex-1 overflow-x-hidden overflow-y-auto bg-gray-100 p-4 pt-6 md:p-6 lg:p-8">
           <div className="lg:hidden h-10 md:h-6"></div>
           {children}

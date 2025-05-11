@@ -18,6 +18,7 @@ import Modal from '../../components/GeralPurposeComponents/Modal/Modal';
 import { useUser } from '../../contexts/UserContext';
 import Swal from 'sweetalert2';
 import { connectionUrl } from '../../config/connection';
+import ImageUpload from '../../components/GeralPurposeComponents/ImageUpload/ImageUpload';
 
 interface AcademiaProfileEditProps {
   isOpen: boolean;
@@ -32,6 +33,7 @@ const AcademiaProfileEdit: FC<AcademiaProfileEditProps> = ({
 }) => {
   const { userData, fetchUserData } = useUser();
   const [isLoading, setIsLoading] = useState(false);
+  const [avatarUrl, setAvatarUrl] = useState<string | undefined>(undefined);
   const [formData, setFormData] = useState({
     cnpj: '',
     endereco: '',
@@ -56,14 +58,20 @@ const AcademiaProfileEdit: FC<AcademiaProfileEditProps> = ({
         telefone: userData.academia.telefone || '',
         horarioFuncionamento: userData.academia.horarioFuncionamento || '',
         descricao: userData.academia.descricao || '',
-        comodidades: userData.academia.comodidades?.join(', ') || '',
-        planos: userData.academia.planos?.join(', ') || '',
+        comodidades: userData.academia.comodidades?.join('; ') || '',
+        planos: userData.academia.planos?.join('; ') || '',
         website: userData.academia.website || '',
         socialMedia: {
           instagram: userData.academia.instagram || '',
           facebook: userData.academia.facebook || ''
         }
       });
+
+      // Carregar a URL da imagem de perfil atual
+      setAvatarUrl(userData.academia.academiaAvatar);
+      
+      // Log para depuração
+      console.log('DEBUG - URL da imagem da academia:', userData.academia.academiaAvatar);
     }
   }, [isOpen, userData]);
 
@@ -86,6 +94,11 @@ const AcademiaProfileEdit: FC<AcademiaProfileEditProps> = ({
     }
   };
 
+  // Função para lidar com o upload de imagem
+  const handleImageUploaded = (imageUrl: string) => {
+    setAvatarUrl(imageUrl);
+  };
+
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
@@ -104,11 +117,12 @@ const AcademiaProfileEdit: FC<AcademiaProfileEditProps> = ({
         telefone: formData.telefone.trim(),
         horarioFuncionamento: formData.horarioFuncionamento.trim(),
         descricao: formData.descricao.trim(),
-        comodidades: formData.comodidades ? formData.comodidades.split(',').map(item => item.trim()).filter(Boolean) : [],
-        planos: formData.planos ? formData.planos.split(',').map(item => item.trim()).filter(Boolean) : [],
+        comodidades: formData.comodidades ? formData.comodidades.split(';').map(item => item.trim()).filter(Boolean) : [],
+        planos: formData.planos ? formData.planos.split(';').map(item => item.trim()).filter(Boolean) : [],
         website: formData.website.trim() || null,
         instagram: formData.socialMedia.instagram.trim() || null,
-        facebook: formData.socialMedia.facebook.trim() || null
+        facebook: formData.socialMedia.facebook.trim() || null,
+        academiaAvatar: avatarUrl
       };
 
       // Usando o endpoint de edição
@@ -162,6 +176,15 @@ const AcademiaProfileEdit: FC<AcademiaProfileEditProps> = ({
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
+          {/* Upload de Imagem */}
+          <div className="flex justify-center mb-6">
+            <ImageUpload 
+              onImageUploaded={handleImageUploaded}
+              endpoint="/upload/avatar/academia"
+              currentImageUrl={avatarUrl}
+            />
+          </div>
+          
           {/* Informações básicas */}
           <div className="border-b border-gray-200 pb-4">
             <h3 className="text-md font-semibold text-gray-700 mb-4">Informações Básicas</h3>
@@ -266,7 +289,7 @@ const AcademiaProfileEdit: FC<AcademiaProfileEditProps> = ({
                 onChange={handleChange}
                 className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-red-500"
                 rows={3}
-                placeholder="Liste as comodidades oferecidas, separadas por vírgula"
+                placeholder="Liste as comodidades oferecidas, separadas por ponto e vírgula (;)"
                 required
               />
             </div>
@@ -282,7 +305,7 @@ const AcademiaProfileEdit: FC<AcademiaProfileEditProps> = ({
                 onChange={handleChange}
                 className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-red-500"
                 rows={3}
-                placeholder="Liste os planos oferecidos, separados por vírgula"
+                placeholder="Liste os planos oferecidos, separados por ponto e vírgula (;)"
                 required
               />
             </div>

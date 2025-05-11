@@ -2,6 +2,7 @@ import { FC, useState, FormEvent } from 'react';
 import Input from '../../components/GeralPurposeComponents/input/Input';
 import Button from '../../components/GeralPurposeComponents/Button/Button';
 import Modal from '../../components/GeralPurposeComponents/Modal/Modal';
+import ImageUpload from '../../components/GeralPurposeComponents/ImageUpload/ImageUpload';
 import Swal from 'sweetalert2';
 import { connectionUrl } from '../../config/connection';
 import { 
@@ -28,6 +29,7 @@ interface ProfileSetupModalProps {
     experience: string;
     activityLevel: string;
     physicalLimitations: string;
+    alunoAvatar?: string;
   };
 }
 
@@ -41,6 +43,7 @@ const AlunoProfileSetup: FC<ProfileSetupModalProps> = ({
   initialData 
 }) => {
   const [isLoading, setIsLoading] = useState(false);
+  const [avatarUrl, setAvatarUrl] = useState<string | undefined>(initialData?.alunoAvatar);
   const [formData, setFormData] = useState({
     birthDate: initialData?.birthDate || '',
     gender: initialData?.gender || '',
@@ -57,6 +60,10 @@ const AlunoProfileSetup: FC<ProfileSetupModalProps> = ({
       ...prev,
       [name]: value
     }));
+  };
+
+  const handleImageUploaded = (imageUrl: string) => {
+    setAvatarUrl(imageUrl);
   };
 
   const handleFormSubmit = async (e: FormEvent) => {
@@ -78,7 +85,8 @@ const AlunoProfileSetup: FC<ProfileSetupModalProps> = ({
       // Preparar dados para envio incluindo o ID do aluno quando necessário
       const dataToSend = {
         ...formData,
-        academiaId: academiaId // Garantir que o academiaId seja incluído
+        academiaId: academiaId, // Garantir que o academiaId seja incluído
+        alunoAvatar: avatarUrl
       };
 
       // Se o userId for fornecido e for diferente do usuário logado, adicionar como alunoId
@@ -125,6 +133,17 @@ const AlunoProfileSetup: FC<ProfileSetupModalProps> = ({
     }
   };
 
+  // Determinar o endpoint de upload com base em quem está fazendo o upload
+  const getUploadEndpoint = () => {
+    const userData = JSON.parse(localStorage.getItem('user') || '{}');
+    // Se o userId for diferente do usuário logado e o usuário logado for uma academia
+    if (userId && userData.id !== userId && userData.role === 'ACADEMIA') {
+      return `/upload/avatar/aluno/${userId}`;
+    }
+    // Caso contrário, é o próprio aluno fazendo upload
+    return '/upload/avatar/aluno';
+  };
+
   return (
     <Modal
       isOpen={isOpen}
@@ -140,6 +159,16 @@ const AlunoProfileSetup: FC<ProfileSetupModalProps> = ({
         </div>
 
         <form onSubmit={handleFormSubmit} className="space-y-6">
+          {/* Upload de Imagem */}
+          <div className="flex justify-center mb-6">
+            <ImageUpload 
+              onImageUploaded={handleImageUploaded}
+              endpoint={getUploadEndpoint()}
+              currentImageUrl={avatarUrl}
+              temporaryToken={temporaryToken}
+            />
+          </div>
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <Input
               label="Data de Nascimento"

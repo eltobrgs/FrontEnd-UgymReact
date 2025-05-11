@@ -119,9 +119,17 @@ const AlunoProfile: FC<AlunoProfileProps> = () => {
         <div className="bg-gradient-to-r from-gray-800 to-gray-900 rounded-2xl p-8 text-white shadow-lg mb-8">
           <div className="flex items-center space-x-6">
             <div className="relative">
-              <div className="w-24 h-24 rounded-full bg-gray-700 flex items-center justify-center">
-                <span className="text-3xl">👤</span>
-              </div>
+              {userData?.preferenciasAluno?.alunoAvatar ? (
+                <img 
+                  src={userData.preferenciasAluno.alunoAvatar} 
+                  alt="Perfil do Aluno" 
+                  className="w-24 h-24 rounded-full object-cover border-2 border-red-500 shadow-lg"
+                />
+              ) : (
+                <div className="w-24 h-24 rounded-full bg-gray-700 flex items-center justify-center">
+                  <span className="text-3xl">👤</span>
+                </div>
+              )}
               <button
                 className="absolute bottom-0 right-0 bg-red-600 p-2 rounded-full hover:bg-red-700 transition-colors"
                 onClick={handleEditProfile}

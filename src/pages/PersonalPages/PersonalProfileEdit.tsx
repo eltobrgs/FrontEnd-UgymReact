@@ -5,6 +5,7 @@ import Modal from '../../components/GeralPurposeComponents/Modal/Modal';
 import Swal from 'sweetalert2';
 import { connectionUrl } from '../../config/connection';
 import { useUser } from '../../contexts/UserContext';
+import ImageUpload from '../../components/GeralPurposeComponents/ImageUpload/ImageUpload';
 import { 
   FaBriefcase, 
   FaBirthdayCake, 
@@ -33,6 +34,7 @@ const PersonalProfileEdit: FC<PersonalProfileEditModalProps> = ({
 }) => {
   const { userData, fetchUserData } = useUser();
   const [isLoading, setIsLoading] = useState(false);
+  const [avatarUrl, setAvatarUrl] = useState<string | undefined>(undefined);
   const [formData, setFormData] = useState({
     birthDate: '',
     gender: '',
@@ -96,24 +98,31 @@ const PersonalProfileEdit: FC<PersonalProfileEditModalProps> = ({
         setFormData({
           birthDate: formattedDate,
           gender: data.gender || '',
-          specializations: data.specializations?.join(', ') || '',
+          specializations: data.specializations?.join('; ') || '',
           yearsOfExperience: data.yearsOfExperience || '',
           workSchedule: data.workSchedule || '',
-          certifications: data.certifications?.join(', ') || '',
+          certifications: data.certifications?.join('; ') || '',
           biography: data.biography || '',
           workLocation: data.workLocation || '',
           pricePerHour: data.pricePerHour || '',
-          languages: data.languages?.join(', ') || '',
+          languages: data.languages?.join('; ') || '',
           socialMedia: {
             instagram: data.instagram || '',
             linkedin: data.linkedin || ''
           }
         });
         
+        // Carregar a URL da imagem de perfil atual
+        setAvatarUrl(data.personalAvatar);
+        
         console.log('Dados carregados do personal:', {
           birthDate: formattedDate,
-          gender: data.gender
+          gender: data.gender,
+          avatarUrl: data.personalAvatar
         });
+        
+        // Log adicional para depuração da imagem
+        console.log('DEBUG - URL da imagem do personal:', data.personalAvatar);
       } catch (error) {
         console.error('Erro ao buscar dados do personal:', error);
       }
@@ -141,6 +150,11 @@ const PersonalProfileEdit: FC<PersonalProfileEditModalProps> = ({
     }
   };
 
+  // Função para lidar com o upload de imagem
+  const handleImageUploaded = (imageUrl: string) => {
+    setAvatarUrl(imageUrl);
+  };
+
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
@@ -154,17 +168,18 @@ const PersonalProfileEdit: FC<PersonalProfileEditModalProps> = ({
 
       // Preparando os dados para envio
       const dataToSend: any = {
-        specializations: formData.specializations.split(',').map(s => s.trim()).filter(Boolean),
+        specializations: formData.specializations.split(';').map(s => s.trim()).filter(Boolean),
         yearsOfExperience: formData.yearsOfExperience,
         workSchedule: formData.workSchedule,
-        certifications: formData.certifications.split(',').map(c => c.trim()).filter(Boolean),
+        certifications: formData.certifications.split(';').map(c => c.trim()).filter(Boolean),
         biography: formData.biography,
         workLocation: formData.workLocation,
         pricePerHour: formData.pricePerHour,
-        languages: formData.languages.split(',').map(l => l.trim()).filter(Boolean),
+        languages: formData.languages.split(';').map(l => l.trim()).filter(Boolean),
         instagram: formData.socialMedia.instagram.trim() || null,
         linkedin: formData.socialMedia.linkedin.trim() || null,
-        gender: formData.gender
+        gender: formData.gender,
+        personalAvatar: avatarUrl
       };
 
       // Converter data para formato DD/MM/YYYY se fornecida
@@ -231,6 +246,15 @@ const PersonalProfileEdit: FC<PersonalProfileEditModalProps> = ({
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
+          {/* Upload de Imagem */}
+          <div className="flex justify-center mb-6">
+            <ImageUpload 
+              onImageUploaded={handleImageUploaded}
+              endpoint="/upload/avatar/personal"
+              currentImageUrl={avatarUrl}
+            />
+          </div>
+          
           {/* Dados Pessoais */}
           <div className="border-b border-gray-200 pb-4">
             <h3 className="text-md font-semibold text-gray-700 mb-4">Dados Pessoais</h3>
@@ -314,7 +338,7 @@ const PersonalProfileEdit: FC<PersonalProfileEditModalProps> = ({
                 value={formData.languages}
                 onChange={handleChange}
                 icon={<FaLanguage size={20} />}
-                placeholder="Ex: Português, Inglês"
+                placeholder="Ex: Português; Inglês"
                 required
               />
             </div>
@@ -359,7 +383,7 @@ const PersonalProfileEdit: FC<PersonalProfileEditModalProps> = ({
                 onChange={handleChange}
                 className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-red-500"
                 rows={3}
-                placeholder="Liste suas especializações (ex: Musculação, Crossfit, Pilates)"
+                placeholder="Liste suas especializações (ex: Musculação; Crossfit; Pilates)"
                 required
               />
             </div>
@@ -375,7 +399,7 @@ const PersonalProfileEdit: FC<PersonalProfileEditModalProps> = ({
                 onChange={handleChange}
                 className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-red-500"
                 rows={3}
-                placeholder="Liste suas principais certificações e formações"
+                placeholder="Liste suas principais certificações e formações, separadas por ponto e vírgula (;)"
                 required
               />
             </div>

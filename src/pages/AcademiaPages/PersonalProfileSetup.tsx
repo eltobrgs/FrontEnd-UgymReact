@@ -16,6 +16,7 @@ import {
 import Input from '../../components/GeralPurposeComponents/input/Input';
 import Button from '../../components/GeralPurposeComponents/Button/Button';
 import Modal from '../../components/GeralPurposeComponents/Modal/Modal';
+import ImageUpload from '../../components/GeralPurposeComponents/ImageUpload/ImageUpload';
 import Swal from 'sweetalert2';
 import { connectionUrl } from '../../config/connection';
 
@@ -39,6 +40,7 @@ interface PersonalProfileSetupModalProps {
     languages: string[];
     instagram?: string;
     linkedin?: string;
+    personalAvatar?: string;
   };
 }
 
@@ -52,6 +54,7 @@ const PersonalProfileSetup: FC<PersonalProfileSetupModalProps> = ({
   initialData
 }) => {
   const [isLoading, setIsLoading] = useState(false);
+  const [avatarUrl, setAvatarUrl] = useState<string | undefined>(initialData?.personalAvatar);
   const [formData, setFormData] = useState({
     birthDate: initialData?.birthDate || '',
     gender: initialData?.gender || '',
@@ -88,6 +91,21 @@ const PersonalProfileSetup: FC<PersonalProfileSetupModalProps> = ({
     }
   };
 
+  const handleImageUploaded = (imageUrl: string) => {
+    setAvatarUrl(imageUrl);
+  };
+
+  // Determinar o endpoint de upload com base em quem está fazendo o upload
+  const getUploadEndpoint = () => {
+    const userData = JSON.parse(localStorage.getItem('user') || '{}');
+    // Se o userId for diferente do usuário logado e o usuário logado for uma academia
+    if (userId && userData.id !== userId && userData.role === 'ACADEMIA') {
+      return `/upload/avatar/personal/${userId}`;
+    }
+    // Caso contrário, é o próprio personal fazendo upload
+    return '/upload/avatar/personal';
+  };
+
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
@@ -112,7 +130,8 @@ const PersonalProfileSetup: FC<PersonalProfileSetupModalProps> = ({
           specializations: formData.specializations.split(',').map(s => s.trim()),
           certifications: formData.certifications.split(',').map(c => c.trim()),
           languages: formData.languages.split(',').map(l => l.trim()),
-          academiaId: academiaId || null
+          academiaId: academiaId || null,
+          personalAvatar: avatarUrl
         }),
       });
 
@@ -159,6 +178,16 @@ const PersonalProfileSetup: FC<PersonalProfileSetupModalProps> = ({
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
+          {/* Upload de Imagem */}
+          <div className="flex justify-center mb-6">
+            <ImageUpload 
+              onImageUploaded={handleImageUploaded}
+              endpoint={getUploadEndpoint()}
+              currentImageUrl={avatarUrl}
+              temporaryToken={temporaryToken}
+            />
+          </div>
+
           {/* Dados Pessoais */}
           <div className="border-b border-gray-200 pb-4">
             <h3 className="text-md font-semibold text-gray-700 mb-4">Dados Pessoais</h3>

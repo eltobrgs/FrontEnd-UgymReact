@@ -19,6 +19,7 @@ interface PreferenciasAluno {
   activityLevel: string;
   medicalConditions: string;
   physicalLimitations: string;
+  alunoAvatar?: string;
   userId: number;
   personalId?: number;
   imc?: number; // Opcional pois é calculado
@@ -40,6 +41,7 @@ interface PreferenciasPersonal {
   languages: string[];
   instagram?: string;
   linkedin?: string;
+  personalAvatar?: string;
   userId: number;
   createdAt: string;
   updatedAt: string;
@@ -57,6 +59,7 @@ interface Academia {
   website?: string;
   instagram?: string;
   facebook?: string;
+  academiaAvatar?: string;
   userId: number;
   createdAt: string;
   updatedAt: string;

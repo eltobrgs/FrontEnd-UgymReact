@@ -57,9 +57,17 @@ const AcademiaProfile: FC = () => {
         <div className="bg-gradient-to-r from-gray-800 to-gray-900 rounded-2xl p-8 text-white shadow-lg mb-8">
           <div className="flex items-center space-x-6">
             <div className="relative">
-              <div className="w-24 h-24 rounded-full bg-gray-700 flex items-center justify-center">
-                <FaBuilding size={40} />
-              </div>
+              {academia.academiaAvatar ? (
+                <img 
+                  src={academia.academiaAvatar} 
+                  alt="Perfil da Academia" 
+                  className="w-24 h-24 rounded-full object-cover border-2 border-red-500 shadow-lg"
+                />
+              ) : (
+                <div className="w-24 h-24 rounded-full bg-gray-700 flex items-center justify-center">
+                  <FaBuilding size={40} />
+                </div>
+              )}
             </div>
             <div>
               <h1 className="text-3xl font-bold">{userData.name}</h1>

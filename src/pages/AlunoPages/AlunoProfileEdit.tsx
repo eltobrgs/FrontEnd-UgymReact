@@ -5,6 +5,7 @@ import Modal from '../../components/GeralPurposeComponents/Modal/Modal';
 import Swal from 'sweetalert2';
 import { connectionUrl } from '../../config/connection';
 import { useUser } from '../../contexts/UserContext';
+import ImageUpload from '../../components/GeralPurposeComponents/ImageUpload/ImageUpload';
 import { 
   FaBirthdayCake, 
   FaVenusMars, 
@@ -28,6 +29,7 @@ const AlunoProfileEdit: FC<ProfileEditModalProps> = ({
 }) => {
   const { userData, fetchUserData } = useUser();
   const [isLoading, setIsLoading] = useState(false);
+  const [avatarUrl, setAvatarUrl] = useState<string | undefined>(undefined);
   const [formData, setFormData] = useState({
     birthDate: '',
     gender: '',
@@ -69,11 +71,18 @@ const AlunoProfileEdit: FC<ProfileEditModalProps> = ({
         physicalLimitations: userData.preferenciasAluno.physicalLimitations || ''
       });
       
+      // Carregar a URL da imagem de perfil atual
+      setAvatarUrl(userData.preferenciasAluno.alunoAvatar);
+      
       console.log('Dados carregados:', {
         birthDate: formattedDate,
         gender: userData.preferenciasAluno.gender,
-        activityLevel: userData.preferenciasAluno.activityLevel
+        activityLevel: userData.preferenciasAluno.activityLevel,
+        avatarUrl: userData.preferenciasAluno.alunoAvatar
       });
+      
+      // Log adicional para depuração da imagem
+      console.log('DEBUG - URL da imagem do aluno:', userData.preferenciasAluno.alunoAvatar);
     }
   }, [isOpen, userData]);
 
@@ -83,6 +92,11 @@ const AlunoProfileEdit: FC<ProfileEditModalProps> = ({
       ...prev,
       [name]: value
     }));
+  };
+
+  // Função para lidar com o upload de imagem
+  const handleImageUploaded = (imageUrl: string) => {
+    setAvatarUrl(imageUrl);
   };
 
   const handleFormSubmit = async (e: FormEvent) => {
@@ -98,11 +112,16 @@ const AlunoProfileEdit: FC<ProfileEditModalProps> = ({
 
       // Preparar dados para envio
       // Converter data para formato DD/MM/YYYY que o backend espera
-      let formattedData = {...formData};
+      let formattedData: any = {...formData};
       
       if (formData.birthDate) {
         const [year, month, day] = formData.birthDate.split('-');
         formattedData.birthDate = `${day}/${month}/${year}`;
+      }
+
+      // Adicionar a URL da imagem aos dados enviados
+      if (avatarUrl) {
+        formattedData.alunoAvatar = avatarUrl;
       }
 
       console.log('Enviando dados:', formattedData);
@@ -163,6 +182,15 @@ const AlunoProfileEdit: FC<ProfileEditModalProps> = ({
         </div>
 
         <form onSubmit={handleFormSubmit} className="space-y-6">
+          {/* Upload de Imagem */}
+          <div className="flex justify-center mb-6">
+            <ImageUpload 
+              onImageUploaded={handleImageUploaded}
+              endpoint="/upload/avatar/aluno"
+              currentImageUrl={avatarUrl}
+            />
+          </div>
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <Input
               label="Data de Nascimento"

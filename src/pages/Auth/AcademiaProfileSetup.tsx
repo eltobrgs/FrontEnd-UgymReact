@@ -15,6 +15,7 @@ import {
 } from 'react-icons/fa';
 import Input from '../../components/GeralPurposeComponents/input/Input';
 import Button from '../../components/GeralPurposeComponents/Button/Button';
+import ImageUpload from '../../components/GeralPurposeComponents/ImageUpload/ImageUpload';
 import { useUser } from '../../contexts/UserContext';
 import { useAuth } from '../../contexts/AuthContext';
 import Swal from 'sweetalert2';
@@ -51,6 +52,7 @@ interface AcademiaProfileSetupProps {
     website?: string;
     instagram?: string;
     facebook?: string;
+    academiaAvatar?: string;
   };
 }
 
@@ -61,6 +63,7 @@ const AcademiaProfileSetup: FC<AcademiaProfileSetupProps> = ({ onSuccess, onClos
   const { setIsAuthenticated } = useAuth();
   const isEditing = location.pathname === '/edit-academia-profile';
   const [isLoading, setIsLoading] = useState(false);
+  const [avatarUrl, setAvatarUrl] = useState<string | undefined>(undefined);
   const [formData, setFormData] = useState<AcademiaProfileFormData>({
     cnpj: '',
     endereco: '',
@@ -115,6 +118,10 @@ const AcademiaProfileSetup: FC<AcademiaProfileSetupProps> = ({ onSuccess, onClos
             facebook: data.facebook || ''
           }
         });
+
+        if (data.academiaAvatar) {
+          setAvatarUrl(data.academiaAvatar);
+        }
       } catch (error) {
         console.error('Erro ao buscar dados:', error);
         Swal.fire('Erro!', 'Falha ao carregar dados do perfil', 'error');
@@ -143,6 +150,10 @@ const AcademiaProfileSetup: FC<AcademiaProfileSetupProps> = ({ onSuccess, onClos
     }
   };
 
+  const handleImageUploaded = (imageUrl: string) => {
+    setAvatarUrl(imageUrl);
+  };
+
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
@@ -166,7 +177,8 @@ const AcademiaProfileSetup: FC<AcademiaProfileSetupProps> = ({ onSuccess, onClos
         planos: formData.planos ? formData.planos.split(',').map(item => item.trim()).filter(Boolean) : [],
         website: formData.website.trim() || null,
         instagram: formData.socialMedia.instagram.trim() || null,
-        facebook: formData.socialMedia.facebook.trim() || null
+        facebook: formData.socialMedia.facebook.trim() || null,
+        academiaAvatar: avatarUrl
       };
 
       console.log('Dados a serem enviados:', dadosFormatados);
@@ -235,6 +247,15 @@ const AcademiaProfileSetup: FC<AcademiaProfileSetupProps> = ({ onSuccess, onClos
 
         <div className="bg-white shadow-lg rounded-lg p-6 md:p-8">
           <form onSubmit={handleSubmit} className="space-y-6">
+            {/* Upload de Imagem */}
+            <div className="flex justify-center mb-6">
+              <ImageUpload 
+                onImageUploaded={handleImageUploaded}
+                endpoint="/upload/avatar/academia"
+                currentImageUrl={avatarUrl}
+              />
+            </div>
+
             {/* Informações básicas */}
             <div className="border-b border-gray-200 pb-4">
               <h3 className="text-md font-semibold text-gray-700 mb-4">Informações Básicas</h3>
