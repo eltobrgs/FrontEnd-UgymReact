@@ -1,5 +1,5 @@
 import { FC, useState, useEffect } from 'react';
-import { FaChartLine, FaDumbbell, FaArrowUp, FaArrowDown, FaEquals } from 'react-icons/fa';
+import { FaChartLine, FaDumbbell, FaArrowUp, FaArrowDown, FaEquals, FaUser } from 'react-icons/fa';
 import { connectionUrl } from '../../../config/connection';
 
 interface AlunoProgresso {
@@ -165,10 +165,10 @@ const AlunosProgressoCard: FC<AlunosProgressoCardProps> = ({ containerClassName 
 
   return (
     <div className={`bg-white rounded-lg shadow-md overflow-hidden ${containerClassName}`}>
-      <div className="p-4 border-b">
+      <div className="p-4 border-b bg-gradient-to-r from-red-500 to-red-600">
         <div className="flex justify-between items-center">
-          <h2 className="text-xl font-semibold text-gray-800">Progresso dos Alunos</h2>
-          <FaChartLine className="text-red-600" />
+          <h2 className="text-xl font-semibold text-white">Progresso dos Alunos</h2>
+          <FaChartLine className="text-white" />
         </div>
       </div>
 
@@ -179,8 +179,8 @@ const AlunosProgressoCard: FC<AlunosProgressoCardProps> = ({ containerClassName 
           </div>
         ) : alunos.length === 0 ? (
           <div className="text-center py-8">
-            <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3">
-              <FaDumbbell className="text-gray-400 text-lg" />
+            <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4 border-2 border-gray-200">
+              <FaDumbbell className="text-gray-400 text-2xl" />
             </div>
             <p className="text-gray-500">Nenhum aluno encontrado com dados de progresso</p>
           </div>
@@ -188,30 +188,32 @@ const AlunosProgressoCard: FC<AlunosProgressoCardProps> = ({ containerClassName 
           <div className="space-y-4 max-h-96 overflow-y-auto">
             {alunos.map((aluno) => (
               <div key={aluno.id} className="border rounded-lg p-4 hover:bg-gray-50 transition-colors">
-                <div className="flex items-center mb-3">
-                  <div className="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center mr-3">
+                <div className="flex items-center mb-4">
+                  <div className="w-14 h-14 rounded-full flex items-center justify-center mr-4 border-2 border-red-500 overflow-hidden">
                     {aluno.imageUrl ? (
                       <img
                         src={aluno.imageUrl}
                         alt={aluno.name}
-                        className="w-full h-full object-cover rounded-full"
+                        className="w-full h-full object-cover"
                       />
                     ) : (
-                      <span className="text-red-600 font-bold">{aluno.name[0]}</span>
+                      <div className="w-full h-full bg-red-100 flex items-center justify-center">
+                        <FaUser className="text-red-600 text-xl" />
+                      </div>
                     )}
                   </div>
                   <div>
-                    <h3 className="font-medium text-gray-800">{aluno.name}</h3>
+                    <h3 className="font-semibold text-gray-800 text-lg">{aluno.name}</h3>
                     <p className="text-sm text-gray-600">{aluno.goal}</p>
                   </div>
                 </div>
 
-                <div className="mb-2">
-                  <div className="flex justify-between text-sm">
-                    <span>Progresso dos Treinos</span>
-                    <span className="font-medium">{aluno.progressoTreino}%</span>
+                <div className="mb-4">
+                  <div className="flex justify-between text-sm mb-1">
+                    <span className="font-medium text-gray-700">Progresso dos Treinos</span>
+                    <span className="font-bold">{aluno.progressoTreino}%</span>
                   </div>
-                  <div className="mt-1 h-2 bg-gray-200 rounded-full overflow-hidden">
+                  <div className="h-3 bg-gray-200 rounded-full overflow-hidden">
                     <div 
                       className={`h-full ${getProgressColor(aluno.progressoTreino)}`}
                       style={{ width: `${aluno.progressoTreino}%` }}
@@ -219,13 +221,15 @@ const AlunosProgressoCard: FC<AlunosProgressoCardProps> = ({ containerClassName 
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-2 text-sm text-gray-600">
+                <div className="grid grid-cols-2 gap-2 text-sm text-gray-600 mt-2 bg-gray-50 p-2 rounded-md">
                   <div className="flex items-center">
                     {getTendenciaIcon(aluno.tendenciaPeso)}
-                    <span className="ml-1">{getTendenciaText(aluno.tendenciaPeso)}</span>
+                    <span className="ml-2 font-medium">{getTendenciaText(aluno.tendenciaPeso)}</span>
                   </div>
-                  <div>
-                    Última atividade: {formatarData(aluno.ultimaAtividade)}
+                  <div className="flex justify-end">
+                    <span className="text-xs bg-gray-200 px-2 py-1 rounded-full">
+                      Atividade: {formatarData(aluno.ultimaAtividade)}
+                    </span>
                   </div>
                 </div>
               </div>

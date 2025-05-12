@@ -83,11 +83,11 @@ const PersonalResponsavel: FC<PersonalResponsavelProps> = ({ containerClassName 
 
   return (
     <div className={`bg-white rounded-lg shadow-md overflow-hidden ${containerClassName}`}>
-      <div className="p-4 border-b">
-        <h2 className="text-xl font-semibold text-gray-800">Meu Personal</h2>
+      <div className="p-4 border-b bg-gradient-to-r from-red-500 to-red-600">
+        <h2 className="text-xl font-semibold text-white">Meu Personal</h2>
       </div>
 
-      <div className="p-4">
+      <div className="p-6">
         {isLoading ? (
           <div className="flex justify-center items-center py-8">
             <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-red-600"></div>
@@ -99,15 +99,15 @@ const PersonalResponsavel: FC<PersonalResponsavelProps> = ({ containerClassName 
           </div>
         ) : !personal ? (
           <div className="text-center py-8">
-            <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3">
-              <FaUserTie className="text-gray-400 text-xl" />
+            <div className="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4 border-2 border-gray-200">
+              <FaUserTie className="text-gray-400 text-3xl" />
             </div>
             <p className="text-gray-500">Você ainda não tem um personal responsável</p>
           </div>
         ) : (
           <div className="space-y-4">
-            <div className="flex items-center">
-              <div className="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center mr-4 flex-shrink-0">
+            <div className="flex flex-col sm:flex-row items-center text-center sm:text-left">
+              <div className="w-24 h-24 bg-red-100 rounded-full flex items-center justify-center mb-4 sm:mb-0 sm:mr-6 flex-shrink-0 border-2 border-red-500 shadow-md overflow-hidden">
                 {personal.imageUrl ? (
                   <img
                     src={personal.imageUrl}
@@ -115,13 +115,21 @@ const PersonalResponsavel: FC<PersonalResponsavelProps> = ({ containerClassName 
                     className="w-full h-full object-cover rounded-full"
                   />
                 ) : (
-                  <FaUserTie className="text-red-600 text-2xl" />
+                  <FaUserTie className="text-red-600 text-3xl" />
                 )}
               </div>
               <div>
-                <h3 className="text-lg font-semibold text-gray-800">{personal.name}</h3>
+                <h3 className="text-xl font-semibold text-gray-800">{personal.name}</h3>
                 {personal.specializations && personal.specializations.length > 0 && (
-                  <p className="text-gray-600">{personal.specializations.join(', ')}</p>
+                  <p className="text-gray-600 text-sm mt-1">{personal.specializations.join(', ')}</p>
+                )}
+                {personal.rating && (
+                  <div className="flex items-center justify-center sm:justify-start mt-2">
+                    {[...Array(5)].map((_, i) => (
+                      <span key={i} className={`text-${i < Math.floor(personal.rating || 0) ? 'yellow' : 'gray'}-400 text-lg`}>★</span>
+                    ))}
+                    <span className="ml-1 text-gray-600 text-sm">{personal.rating}</span>
+                  </div>
                 )}
               </div>
             </div>
@@ -161,8 +169,10 @@ const PersonalResponsavel: FC<PersonalResponsavelProps> = ({ containerClassName 
               )}
 
               {personal.pricePerHour && (
-                <div className="flex items-center text-gray-700">
-                  <span className="font-medium">R$ {personal.pricePerHour}/hora</span>
+                <div className="flex justify-center sm:justify-start mt-4">
+                  <span className="bg-red-100 text-red-800 font-semibold px-4 py-2 rounded-full">
+                    R$ {personal.pricePerHour}/hora
+                  </span>
                 </div>
               )}
             </div>

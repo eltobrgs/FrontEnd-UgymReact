@@ -1,5 +1,5 @@
 import { FC, useState, useEffect } from 'react';
-import { FaSearch, FaDumbbell, FaUser, FaCalendarAlt } from 'react-icons/fa';
+import { FaSearch, FaDumbbell, FaCalendarAlt } from 'react-icons/fa';
 import { connectionUrl } from '../../config/connection';
 import Swal from 'sweetalert2';
 import WorkoutEditModal from '../../components/GeralPurposeComponents/StudentCard/WorkoutEditModal';
@@ -27,6 +27,7 @@ interface Aluno {
   nome: string;
   email: string;
   treinos: Treino[];
+  imageUrl?: string;
 }
 
 const PersonalGerenciaTreino: FC = () => {
@@ -191,7 +192,7 @@ const PersonalGerenciaTreino: FC = () => {
               placeholder="Buscar por nome ou email do aluno..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full px-4 py-3 pl-12 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-4 py-3 pl-12 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-red-500"
             />
             <FaSearch className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" />
           </div>
@@ -215,44 +216,53 @@ const PersonalGerenciaTreino: FC = () => {
                   className="bg-white rounded-xl overflow-hidden shadow-md hover:shadow-lg transition-all cursor-pointer"
                   onClick={() => handleEditWorkout(aluno.userId, aluno.nome)}
                 >
-                  <div className="p-6">
-                    <div className="flex items-center justify-between mb-4">
-                      <div className="flex items-center">
-                        <FaUser className="text-blue-600 mr-3" size={24} />
+                  <div className="relative">
+                    <div className="h-3 bg-red-500 w-full absolute top-0"></div>
+                    <div className="pt-6 px-6">
+                      <div className="flex items-center mb-4">
+                        {aluno.imageUrl ? (
+                          <div className="w-16 h-16 rounded-full mr-4 bg-cover bg-center border-2 border-red-500" 
+                               style={{ backgroundImage: `url(${aluno.imageUrl})` }}>
+                          </div>
+                        ) : (
+                          <div className="w-16 h-16 bg-red-100 rounded-full mr-4 flex items-center justify-center text-red-600 font-bold text-2xl border-2 border-red-500">
+                            {aluno.nome[0].toUpperCase()}
+                          </div>
+                        )}
                         <div>
-                          <h3 className="text-lg font-semibold">{aluno.nome}</h3>
+                          <h3 className="text-xl font-semibold text-gray-800">{aluno.nome}</h3>
                           <p className="text-sm text-gray-600">{aluno.email}</p>
+                          <div className={`inline-block px-3 py-1 rounded-full ${corStatus} text-sm font-medium mt-2`}>
+                            {texto}
+                          </div>
                         </div>
                       </div>
-                      <div className={`px-3 py-1 rounded-full ${corStatus} text-sm font-medium`}>
-                        {texto}
-                      </div>
-                    </div>
-                    
-                    <div className="border-t pt-4">
-                      <div className="grid grid-cols-2 gap-3">
-                        <div className="flex items-center text-gray-700">
-                          <FaDumbbell className="mr-2 text-blue-600" />
-                          <span className="text-sm">
-                            {totalExercicios} exercício{totalExercicios !== 1 ? 's' : ''}
-                          </span>
-                        </div>
-                        
-                        <div className="flex items-center text-gray-700">
-                          <FaCalendarAlt className="mr-2 text-blue-600" />
-                          <span className="text-sm">
-                            {diasComTreino} dia{diasComTreino !== 1 ? 's' : ''} com treino
-                          </span>
+                      
+                      <div className="border-t pt-4 pb-4">
+                        <div className="grid grid-cols-2 gap-3">
+                          <div className="flex items-center text-gray-700">
+                            <FaDumbbell className="mr-2 text-red-600" />
+                            <span className="text-sm">
+                              {totalExercicios} exercício{totalExercicios !== 1 ? 's' : ''}
+                            </span>
+                          </div>
+                          
+                          <div className="flex items-center text-gray-700">
+                            <FaCalendarAlt className="mr-2 text-red-600" />
+                            <span className="text-sm">
+                              {diasComTreino} dia{diasComTreino !== 1 ? 's' : ''} com treino
+                            </span>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                    
-                    <div className="mt-5">
-                      <button 
-                        className="w-full py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg flex items-center justify-center transition"
-                      >
-                        <FaDumbbell className="mr-2" /> Gerenciar Treinos
-                      </button>
+                      
+                      <div className="bg-gray-50 -mx-6 px-6 py-3 mt-2">
+                        <button 
+                          className="w-full py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg flex items-center justify-center transition"
+                        >
+                          <FaDumbbell className="mr-2" /> Gerenciar Treinos
+                        </button>
+                      </div>
                     </div>
                   </div>
                 </div>

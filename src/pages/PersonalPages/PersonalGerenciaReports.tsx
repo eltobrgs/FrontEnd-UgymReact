@@ -4,6 +4,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, BarChart, Bar, AreaChart, Area, PieChart, Pie, Cell, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, ComposedChart } from 'recharts';
 import Swal from 'sweetalert2';
 import { motion } from 'framer-motion';
+import { FaUserCircle } from 'react-icons/fa';
 
 interface Student {
   id: number;
@@ -13,6 +14,7 @@ interface Student {
   gender: string;
   goal: string;
   age: number;
+  imageUrl?: string;
 }
 
 interface Report {
@@ -479,9 +481,15 @@ const PersonalGerenciaReports = () => {
                       onClick={() => handleSelectStudent(student)}
                     >
                       <div className="flex items-center">
-                        <div className="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center text-red-600 font-bold">
-                          {student.name[0].toUpperCase()}
-                        </div>
+                        {student.imageUrl ? (
+                          <div className="w-10 h-10 rounded-full bg-cover bg-center" 
+                               style={{ backgroundImage: `url(${student.imageUrl})` }}>
+                          </div>
+                        ) : (
+                          <div className="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center text-red-600 font-bold">
+                            {student.name[0].toUpperCase()}
+                          </div>
+                        )}
                         <div className="ml-4">
                           <h3 className="font-medium">{student.name}</h3>
                           <p className="text-sm text-gray-500">{student.goal}</p>
@@ -503,7 +511,16 @@ const PersonalGerenciaReports = () => {
             {selectedStudent ? (
               <div>
                 <div className="flex justify-between items-center mb-6">
-                  <h2 className="text-xl font-semibold">Relatórios de {selectedStudent.name}</h2>
+                  <div className="flex items-center">
+                    {selectedStudent.imageUrl ? (
+                      <div className="w-12 h-12 rounded-full mr-3 bg-cover bg-center"
+                           style={{ backgroundImage: `url(${selectedStudent.imageUrl})` }}>
+                      </div>
+                    ) : (
+                      <FaUserCircle className="text-gray-400 w-12 h-12 mr-3" />
+                    )}
+                    <h2 className="text-xl font-semibold">Relatórios de {selectedStudent.name}</h2>
+                  </div>
                   <button
                     onClick={handleAddReport}
                     className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 transition"
