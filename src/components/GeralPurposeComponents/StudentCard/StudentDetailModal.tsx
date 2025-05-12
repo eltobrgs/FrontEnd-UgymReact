@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react';
-import { FaWeight, FaRulerVertical, FaRunning, FaBullseye, FaBirthdayCake, FaHeartbeat, FaNotesMedical, FaWalking, FaTimes, FaCalculator } from 'react-icons/fa';
+import React, { useState, useEffect } from 'react';
+import { FaWeight, FaRulerVertical, FaRunning, FaBullseye, FaBirthdayCake, FaHeartbeat, FaNotesMedical, FaWalking, FaTimes, FaCalculator, FaUserCircle } from 'react-icons/fa';
 import { motion, AnimatePresence } from 'framer-motion';
 import { connectionUrl } from '../../../config/connection';
 import { useAuth } from '../../../contexts/AuthContext';
@@ -33,17 +33,9 @@ interface StudentDetailModalProps {
     activityLevel?: string;
     medicalConditions?: string;
     physicalLimitations?: string;
-  };
-}
-
-const getIMCContext = (imc: number) => {
-  if (imc < 18.5) return 'Abaixo do peso';
-  if (imc < 25) return 'Peso normal';
-  if (imc < 30) return 'Sobrepeso';
-  if (imc < 35) return 'Obesidade grau I';
-  if (imc < 40) return 'Obesidade grau II';
-  return 'Obesidade grau III';
+    imc?: string;
 };
+}
 
 const StudentDetailModal: React.FC<StudentDetailModalProps> = ({
   isOpen,
@@ -51,144 +43,115 @@ const StudentDetailModal: React.FC<StudentDetailModalProps> = ({
   student
 }) => {
   const { token } = useAuth();
-  const [latestWeight, setLatestWeight] = useState<number | null>(null);
-  const [latestHeight, setLatestHeight] = useState<number | null>(null);
-  const [imc, setImc] = useState<number | null>(null);
-  const [imcContext, setImcContext] = useState<string>('');
+  const [reports, setReports] = useState<ReportsByType>({});
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [imageError, setImageError] = useState(false);
+
+  // Efeito para logar informações da imagem para depuração
+  useEffect(() => {
+    if (isOpen && student.imageUrl) {
+      console.log(`[StudentDetailModal] ID: ${student.id}, Nome: ${student.name}, ImageUrl:`, student.imageUrl);
+    }
+  }, [isOpen, student.id, student.name, student.imageUrl]);
 
   useEffect(() => {
-    if (isOpen && student.id) {
-      console.log(`Modal aberto para estudante ID: ${student.id}, Nome: ${student.name}`);
+    if (isOpen) {
       fetchReports();
     }
   }, [isOpen, student.id]);
 
   const fetchReports = async () => {
-    if (!token) {
-      console.error("Token não encontrado");
-      setError("Token não encontrado. Faça login novamente.");
-      return;
-    }
+    if (!student.id) return;
 
     setIsLoading(true);
-    setError(null);
-    
     try {
-      console.log(`Buscando relatórios para aluno ID: ${student.id}`);
-      const apiUrl = `${connectionUrl}/personal/aluno/${student.id}/reports`;
-      console.log(`Fazendo requisição para: ${apiUrl}`);
-      
-      const response = await fetch(apiUrl, {
+      const response = await fetch(`${connectionUrl}/aluno/${student.id}/relatorios`, {
         headers: {
-          Authorization: `Bearer ${token}`
+          'Authorization': `Bearer ${token}`
         }
       });
-
-      console.log(`Status da resposta: ${response.status}`);
       
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error(`Erro na requisição: ${response.status}`, errorText);
-        throw new Error(`Erro ao buscar relatórios: ${response.status} - ${errorText}`);
-      }
-
+      if (response.ok) {
       const data = await response.json();
-      console.log("Resposta completa:", data);
-      
-      const reports: ReportsByType = data.reports || {};
-      
-      console.log("Relatórios recebidos:", reports);
-
-      // Obter o peso mais recente
-      if (reports.peso && reports.peso.length > 0) {
-        const sortedWeights = [...reports.peso].sort((a, b) => 
-          new Date(b.data).getTime() - new Date(a.data).getTime()
-        );
-        setLatestWeight(sortedWeights[0].valor);
-        console.log("Peso mais recente:", sortedWeights[0].valor);
+        console.log('Relatórios obtidos:', data);
+        setReports(data);
       } else {
-        console.log("Nenhum relatório de peso encontrado");
-      }
-
-      // Obter a altura mais recente
-      if (reports.altura && reports.altura.length > 0) {
-        const sortedHeights = [...reports.altura].sort((a, b) => 
-          new Date(b.data).getTime() - new Date(a.data).getTime()
-        );
-        setLatestHeight(sortedHeights[0].valor);
-        console.log("Altura mais recente:", sortedHeights[0].valor);
-      } else {
-        console.log("Nenhum relatório de altura encontrado");
+        console.error('Erro ao buscar relatórios:', await response.text());
       }
     } catch (error) {
       console.error('Erro ao buscar relatórios:', error);
-      setError(`Falha ao carregar dados: ${error instanceof Error ? error.message : 'Erro desconhecido'}`);
     } finally {
       setIsLoading(false);
     }
   };
 
-  // Calcular IMC quando peso ou altura mudam
-  useEffect(() => {
-    if (latestWeight && latestHeight) {
-      console.log(`Calculando IMC com peso: ${latestWeight}kg e altura: ${latestHeight}cm`);
-      const heightInMeters = latestHeight / 100;
-      const calculatedIMC = latestWeight / (heightInMeters * heightInMeters);
-      const roundedIMC = parseFloat(calculatedIMC.toFixed(2));
-      setImc(roundedIMC);
-      
-      const context = getIMCContext(calculatedIMC);
-      setImcContext(context);
-      console.log(`IMC calculado: ${roundedIMC} (${context})`);
-    }
-  }, [latestWeight, latestHeight]);
+  const handleImageError = () => {
+    console.error(`[StudentDetailModal] Erro ao carregar imagem para ${student.name} (ID: ${student.id}), URL: ${student.imageUrl}`);
+    setImageError(true);
+  };
+
+  const handleImageLoad = () => {
+    console.log(`[StudentDetailModal] Imagem carregada com sucesso para ${student.name} (ID: ${student.id})`);
+  };
+
+  // Função para determinar a categoria do IMC
+  const getBMICategory = (bmi: string | undefined) => {
+    if (!bmi || bmi === 'Não calculado' || bmi === 'N/A') return 'Não disponível';
+    
+    const bmiValue = typeof bmi === 'string' ? parseFloat(bmi) : bmi;
+    if (isNaN(bmiValue)) return 'Não disponível';
+    
+    if (bmiValue < 18.5) return 'Abaixo do peso';
+    if (bmiValue < 25) return 'Peso normal';
+    if (bmiValue < 30) return 'Sobrepeso';
+    if (bmiValue < 35) return 'Obesidade Grau I';
+    if (bmiValue < 40) return 'Obesidade Grau II';
+    return 'Obesidade Grau III';
+  };
+
+  // Determinar a cor do badge do IMC
+  const getBMIColor = (bmi: string | undefined) => {
+    if (!bmi || bmi === 'Não calculado' || bmi === 'N/A') return 'bg-gray-200 text-gray-700';
+    
+    const bmiValue = typeof bmi === 'string' ? parseFloat(bmi) : bmi;
+    if (isNaN(bmiValue)) return 'bg-gray-200 text-gray-700';
+    
+    if (bmiValue < 18.5) return 'bg-blue-100 text-blue-800';
+    if (bmiValue < 25) return 'bg-green-100 text-green-800';
+    if (bmiValue < 30) return 'bg-yellow-100 text-yellow-800';
+    return 'bg-red-100 text-red-800';
+  };
+
+  const bmiCategory = getBMICategory(student.imc);
+  const bmiColor = getBMIColor(student.imc);
 
   if (!isOpen) return null;
-
-  const weightDisplay = latestWeight ? `${latestWeight} kg` : (student.weight !== 'Dados em relatórios' ? student.weight : 'Não informado');
-  const heightDisplay = latestHeight ? `${latestHeight} cm` : (student.height !== 'Dados em relatórios' ? student.height : 'Não informado');
-  
-  console.log(`Valores para exibição - Peso: ${weightDisplay}, Altura: ${heightDisplay}, IMC: ${imc || 'não calculado'}`);
 
   return (
     <AnimatePresence>
       {isOpen && (
-        <motion.div 
-          className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-md overflow-y-auto p-4"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 0.3 }}
-        >
+        <div className="fixed inset-0 bg-black bg-opacity-70 z-50 flex items-center justify-center p-4">
           <motion.div 
-            className="fixed inset-0 bg-black/30"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={onClose}
-          />
-          
-          <motion.div 
-            className="bg-white rounded-xl shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto relative z-10"
-            initial={{ scale: 0.9, opacity: 0, y: 20 }}
-            animate={{ scale: 1, opacity: 1, y: 0 }}
-            exit={{ scale: 0.9, opacity: 0, y: 20 }}
-            transition={{ 
-              type: "spring", 
-              damping: 25, 
-              stiffness: 300 
-            }}
-            onClick={(e) => e.stopPropagation()}
+            className="bg-white w-full max-w-3xl rounded-xl shadow-2xl overflow-hidden"
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.9 }}
+            transition={{ duration: 0.3 }}
           >
-            {/* Header com imagem e botão de fechar */}
             <div className="relative">
-              <img 
-                src={student.imageUrl || 'https://via.placeholder.com/150'} 
-                alt={student.name} 
-                className="w-full h-48 object-cover rounded-t-xl"
-              />
+              {student.imageUrl && !imageError ? (
+                <img 
+                  src={student.imageUrl} 
+                  alt={`Foto de ${student.name}`} 
+                  className="w-full h-64 object-cover rounded-t-xl"
+                  onError={handleImageError}
+                  onLoad={handleImageLoad}
+                />
+              ) : (
+                <div className="w-full h-64 bg-gradient-to-r from-red-100 to-red-200 flex items-center justify-center rounded-t-xl">
+                  <FaUserCircle className="text-red-300" size={100} />
+                </div>
+              )}
               <motion.button 
                 onClick={onClose}
                 className="absolute top-4 right-4 bg-red-600 p-2 rounded-full hover:bg-red-700 text-white shadow-md"
@@ -197,194 +160,124 @@ const StudentDetailModal: React.FC<StudentDetailModalProps> = ({
               >
                 <FaTimes size={18} />
               </motion.button>
-              <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black to-transparent p-4">
-                <h2 className="text-2xl font-bold text-white">{student.name}</h2>
+              <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black to-transparent p-6">
+                <h2 className="text-3xl font-bold text-white drop-shadow-md">{student.name}</h2>
               </div>
             </div>
 
             {/* Conteúdo do modal */}
-            <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
-              {error && (
-                <div className="col-span-2 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
-                  <p>{error}</p>
+            <div className="p-6 overflow-y-auto max-h-[calc(100vh-350px)]">
+              {/* Informações básicas */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                <div className="bg-red-50 p-4 rounded-lg">
+                  <h3 className="text-lg font-semibold text-red-800 mb-3">Informações Pessoais</h3>
+                  <div className="space-y-2">
+                    <div className="flex items-center">
+                      <FaBirthdayCake className="text-red-600 mr-2" />
+                      <span>{student.age} anos</span>
+                    </div>
+                    {student.gender && (
+                      <div className="flex items-center">
+                        <FaUserCircle className="text-red-600 mr-2" />
+                        <span>Gênero: {student.gender}</span>
+                      </div>
+                    )}
+                    <div className="flex items-center">
+                      <FaRunning className="text-red-600 mr-2" />
+                      <span>Experiência: {student.trainingTime}</span>
+                    </div>
+                    {student.activityLevel && (
+                      <div className="flex items-center">
+                        <FaWalking className="text-red-600 mr-2" />
+                        <span>Nível de Atividade: {student.activityLevel}</span>
+                      </div>
+                    )}
+                  </div>
                 </div>
-              )}
               
-              <div>
-                <h3 className="text-lg font-semibold mb-4 text-gray-800 border-b pb-2">Informações Básicas</h3>
-
-                <div className="space-y-3">
-                  <motion.div 
-                    className="flex items-center text-gray-700"
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: 0.1 }}
-                  >
-                    <FaBirthdayCake className="mr-3 text-red-600" />
-                    <span className="font-medium">Idade: {student.age} anos</span>
-                  </motion.div>
-                  
-                  <motion.div 
-                    className="flex items-center text-gray-700"
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: 0.2 }}
-                  >
-                    <FaWeight className="mr-3 text-red-600" />
-                    <span>Peso: {isLoading ? 'Carregando...' : weightDisplay}</span>
-                  </motion.div>
-                  
-                  <motion.div 
-                    className="flex items-center text-gray-700"
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: 0.3 }}
-                  >
-                    <FaRulerVertical className="mr-3 text-red-600" />
-                    <span>Altura: {isLoading ? 'Carregando...' : heightDisplay}</span>
-                  </motion.div>
-                  
-                  {imc && (
-                    <motion.div 
-                      className="flex items-center text-gray-700"
-                      initial={{ opacity: 0, x: -20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: 0.35 }}
-                    >
-                      <FaCalculator className="mr-3 text-red-600" />
-                      <div>
-                        <span>IMC: {imc} - </span>
-                        <span className={`text-sm px-2 py-1 rounded-full ${
-                          imc < 18.5 ? 'bg-blue-100 text-blue-800' :
-                          imc < 25 ? 'bg-green-100 text-green-800' :
-                          imc < 30 ? 'bg-yellow-100 text-yellow-800' :
-                          'bg-red-100 text-red-800'
-                        }`}>
-                          {imcContext}
+                <div className="bg-blue-50 p-4 rounded-lg">
+                  <h3 className="text-lg font-semibold text-blue-800 mb-3">Dados Físicos</h3>
+                  <div className="space-y-2">
+                    <div className="flex items-center">
+                      <FaWeight className="text-blue-600 mr-2" />
+                      <span>Peso: {student.weight}</span>
+                    </div>
+                    <div className="flex items-center">
+                      <FaRulerVertical className="text-blue-600 mr-2" />
+                      <span>Altura: {student.height}</span>
+                    </div>
+                    <div className="flex items-center">
+                      <FaCalculator className="text-blue-600 mr-2" />
+                      <div className="flex items-center">
+                        <span className="mr-2">IMC: {student.imc || 'N/A'}</span>
+                        <span className={`text-xs px-2 py-0.5 rounded-full ${bmiColor}`}>
+                          {bmiCategory}
                         </span>
                       </div>
-                    </motion.div>
-                  )}
-                  
-                  <motion.div 
-                    className="flex items-center text-gray-700"
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: 0.4 }}
-                  >
-                    <FaRunning className="mr-3 text-red-600" />
-                    <span>Experiência: {student.trainingTime}</span>
-                  </motion.div>
-
-                  {student.gender && (
-                    <motion.div 
-                      className="flex items-center text-gray-700"
-                      initial={{ opacity: 0, x: -20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: 0.5 }}
-                    >
-                      <div className="w-6 h-6 mr-3 flex items-center justify-center text-red-600">
-                        {student.gender === 'masculino' ? '♂' : student.gender === 'feminino' ? '♀' : '⚧'}
+                    </div>
+                    <div className="flex items-center">
+                      <FaBullseye className="text-blue-600 mr-2" />
+                      <span>Objetivo: {student.goal}</span>
+                    </div>
                       </div>
-                      <span>Gênero: <span className="capitalize">{student.gender}</span></span>
-                    </motion.div>
-                  )}
-
-                  {student.activityLevel && (
-                    <motion.div 
-                      className="flex items-center text-gray-700"
-                      initial={{ opacity: 0, x: -20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: 0.6 }}
-                    >
-                      <FaWalking className="mr-3 text-red-600" />
-                      <span>Nível de Atividade: {student.activityLevel}</span>
-                    </motion.div>
-                  )}
                 </div>
               </div>
 
-              <div>
-                <div>
-                  <h3 className="text-lg font-semibold mb-3 text-gray-800 border-b pb-2">Objetivo</h3>
-                  <motion.div 
-                    className="flex items-center text-gray-700 mb-6"
-                    initial={{ opacity: 0, x: 20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: 0.1 }}
-                  >
-                    <FaBullseye className="mr-3 text-red-600 flex-shrink-0" />
-                    <span>{student.goal}</span>
-                  </motion.div>
-                </div>
-
-                {(student.medicalConditions || student.physicalLimitations || student.healthCondition) && (
-                  <div>
-                    <h3 className="text-lg font-semibold mb-3 text-gray-800 border-b pb-2">Informações de Saúde</h3>
-                    <div className="space-y-3">
+              {/* Informações médicas */}
+              {(student.healthCondition || student.medicalConditions || student.physicalLimitations) && (
+                <div className="bg-green-50 p-4 rounded-lg mb-6">
+                  <h3 className="text-lg font-semibold text-green-800 mb-3">Informações de Saúde</h3>
+                  <div className="space-y-2">
                       {student.healthCondition && (
-                        <motion.div 
-                          className="flex items-start text-gray-700"
-                          initial={{ opacity: 0, x: 20 }}
-                          animate={{ opacity: 1, x: 0 }}
-                          transition={{ delay: 0.2 }}
-                        >
-                          <FaHeartbeat className="mr-3 text-red-600 mt-1 flex-shrink-0" />
-                          <div>
-                            <p className="font-medium">Condição de Saúde:</p>
-                            <p>{student.healthCondition}</p>
+                      <div className="flex items-start">
+                        <FaHeartbeat className="text-green-600 mr-2 mt-1" />
+                        <span>Condição de Saúde: {student.healthCondition}</span>
                           </div>
-                        </motion.div>
                       )}
-                      
                       {student.medicalConditions && (
-                        <motion.div 
-                          className="flex items-start text-gray-700"
-                          initial={{ opacity: 0, x: 20 }}
-                          animate={{ opacity: 1, x: 0 }}
-                          transition={{ delay: 0.3 }}
-                        >
-                          <FaNotesMedical className="mr-3 text-red-600 mt-1 flex-shrink-0" />
-                          <div>
-                            <p className="font-medium">Condições Médicas:</p>
-                            <p>{student.medicalConditions}</p>
+                      <div className="flex items-start">
+                        <FaNotesMedical className="text-green-600 mr-2 mt-1" />
+                        <span>Condições Médicas: {student.medicalConditions}</span>
                           </div>
-                        </motion.div>
                       )}
-                      
                       {student.physicalLimitations && (
-                        <motion.div 
-                          className="flex items-start text-gray-700"
-                          initial={{ opacity: 0, x: 20 }}
-                          animate={{ opacity: 1, x: 0 }}
-                          transition={{ delay: 0.4 }}
-                        >
-                          <FaNotesMedical className="mr-3 text-red-600 mt-1 flex-shrink-0" />
-                          <div>
-                            <p className="font-medium">Limitações Físicas:</p>
-                            <p>{student.physicalLimitations}</p>
+                      <div className="flex items-start">
+                        <FaRunning className="text-green-600 mr-2 mt-1" />
+                        <span>Limitações Físicas: {student.physicalLimitations}</span>
                           </div>
-                        </motion.div>
                       )}
                     </div>
                   </div>
                 )}
+
+              {/* Relatórios */}
+              {!isLoading && Object.keys(reports).length > 0 && (
+                <div className="bg-purple-50 p-4 rounded-lg">
+                  <h3 className="text-lg font-semibold text-purple-800 mb-3">Relatórios Recentes</h3>
+                  <div className="space-y-4">
+                    {Object.entries(reports).map(([type, reportList]) => (
+                      <div key={type} className="border-b border-purple-200 pb-2">
+                        <h4 className="font-medium text-purple-700">{type}</h4>
+                        <div className="mt-1">
+                          {reportList.length > 0 ? (
+                            <div className="text-sm">
+                              <p>Último valor: {reportList[0].valor} ({new Date(reportList[0].data).toLocaleDateString()})</p>
+                              {reportList[0].observacao && (
+                                <p className="text-gray-600 italic mt-1">{reportList[0].observacao}</p>
+                              )}
+                            </div>
+                          ) : (
+                            <p className="text-sm text-gray-500">Nenhum registro</p>
+                          )}
+                        </div>
+                      </div>
+                    ))}
               </div>
             </div>
-
-            {/* Botões no rodapé */}
-            <div className="border-t p-4 flex justify-end space-x-3">
-              <motion.button 
-                onClick={onClose}
-                className="px-4 py-2 border border-gray-300 rounded-xl text-gray-700 hover:bg-gray-100 transition-colors"
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                Fechar
-              </motion.button>
+              )}
             </div>
           </motion.div>
-        </motion.div>
+        </div>
       )}
     </AnimatePresence>
   );

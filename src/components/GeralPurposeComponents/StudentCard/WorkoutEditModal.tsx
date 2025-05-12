@@ -1,9 +1,10 @@
 import { FC, useState, useEffect } from 'react';
 import { connectionUrl } from '../../../config/connection';
-import { FaTimes, FaPlus, FaTrash, FaDumbbell } from 'react-icons/fa';
-import { FiEdit2 } from 'react-icons/fi';
+import { FaTimes, FaPlus, FaTrash, FaDumbbell, FaVideo, FaImage, FaFilm } from 'react-icons/fa';
 import Swal from 'sweetalert2';
 import { motion, AnimatePresence } from 'framer-motion';
+import MediaUploader from '../../GeralPurposeComponents/MediaUploader';
+import MediaUploaderCombinado from '../../GeralPurposeComponents/MediaUploaderCombinado';
 
 interface AlunoData {
   userId: string;
@@ -20,6 +21,8 @@ interface Exercise {
   repsPerSet: number;
   status: string;
   image: string;
+  videoUrl?: string;
+  gifUrl?: string;
 }
 
 interface Treino {
@@ -74,6 +77,14 @@ const WorkoutEditModal: FC<WorkoutEditModalProps> = ({ isOpen, onClose, alunoId,
   // Estado para controlar se está adicionando um novo exercício
   const [isAddingExercise, setIsAddingExercise] = useState(false);
   const [editingExerciseIndex, setEditingExerciseIndex] = useState<number | null>(null);
+
+  // Estado para controlar se está mostrando o uploader de mídia
+  const [showMediaUploader, setShowMediaUploader] = useState(false);
+  
+  // Estados para o novo uploader combinado
+  const [selectedMediaFile, setSelectedMediaFile] = useState<File | null>(null);
+  const [selectedMediaType, setSelectedMediaType] = useState<'image' | 'video' | 'gif'>('image');
+  const [selectedYoutubeUrl, setSelectedYoutubeUrl] = useState('');
 
   // Buscar os treinos do aluno e o ID da preferência
   useEffect(() => {
@@ -234,15 +245,29 @@ const WorkoutEditModal: FC<WorkoutEditModalProps> = ({ isOpen, onClose, alunoId,
       console.log('Exercícios a serem salvos:', exercicios);
 
       // Preparar dados para envio
-      const exerciciosFormatados = exercicios.map(ex => ({
+      const exerciciosFormatados = exercicios.map(ex => {
+        // Garantir que temos valores válidos para todos os campos
+        const formattedExercise: any = {
         name: ex.name,
         sets: ex.sets,
         time: ex.time,
         restTime: ex.restTime,
         repsPerSet: ex.repsPerSet,
         status: ex.status || 'not-started',
-        image: ex.image
-      }));
+          image: ex.image || defaultImage
+        };
+
+        // Adicionar videoUrl e gifUrl apenas se existirem
+        if (ex.videoUrl) {
+          formattedExercise.videoUrl = ex.videoUrl;
+        }
+        
+        if (ex.gifUrl) {
+          formattedExercise.gifUrl = ex.gifUrl;
+        }
+
+        return formattedExercise;
+      });
 
       console.log('Enviando request para:', `${connectionUrl}/personal/treinos/${prefId}/${selectedDay}`);
       console.log('Dados da requisição:', JSON.stringify({
@@ -286,38 +311,132 @@ const WorkoutEditModal: FC<WorkoutEditModalProps> = ({ isOpen, onClose, alunoId,
     }
   };
 
-  // Adicionar ou atualizar um exercício
-  const handleSaveExercise = () => {
-    // Validações básicas
-    if (!currentExercise.name || !currentExercise.time || !currentExercise.restTime) {
-      Swal.fire('Atenção', 'Preencha todos os campos obrigatórios', 'warning');
+  // Função para verificar se o exercício tem mídias
+  const hasMedia = (exercise: Exercise): boolean => {
+    return !!(
+      exercise.videoUrl || 
+      exercise.gifUrl || 
+      (exercise.image && !exercise.image.includes('placeholder'))
+    );
+  };
+
+  // Função para lidar com a seleção de mídia no uploader combinado
+  const handleMediaSelected = (mediaFile: File | null, mediaType: 'image' | 'video' | 'gif', youtubeUrl: string) => {
+    setSelectedMediaFile(mediaFile);
+    setSelectedMediaType(mediaType);
+    setSelectedYoutubeUrl(youtubeUrl);
+  };
+
+  const handleSaveExercise = async () => {
+    // Validar dados do exercício
+    if (!currentExercise.name || !currentExercise.sets || !currentExercise.time || 
+        !currentExercise.restTime || !currentExercise.repsPerSet) {
+      Swal.fire('Erro', 'Por favor, preencha todos os campos obrigatórios', 'error');
       return;
     }
 
-    console.log('Salvando exercício:', currentExercise);
-    const updatedExercicios = [...(treinos[selectedDay] || [])];
-    
+    // Se estiver editando um exercício existente
     if (editingExerciseIndex !== null) {
-      console.log(`Atualizando exercício no índice ${editingExerciseIndex}`);
-      // Atualizar exercício existente
-      updatedExercicios[editingExerciseIndex] = { ...currentExercise };
+      const updatedExercises = [...treinos[selectedDay]];
+      updatedExercises[editingExerciseIndex] = currentExercise;
+      
+      setTreinos({
+        ...treinos,
+        [selectedDay]: updatedExercises
+      });
+      
+      // Não resetar completamente para permitir edição de mídias
+      if (!showMediaUploader) {
+        setEditingExerciseIndex(null);
+        setIsAddingExercise(false);
     } else {
-      console.log('Adicionando novo exercício');
-      // Adicionar novo exercício
-      updatedExercicios.push({ ...currentExercise });
+        // Mostrar mensagem de que agora é possível adicionar mídias
+        Swal.fire({
+          title: 'Exercício salvo!',
+          text: 'Agora você pode adicionar mídias ao exercício',
+          icon: 'success',
+          timer: 2000,
+          showConfirmButton: false
+        });
+      }
+      return;
     }
     
-    console.log('Lista atualizada de exercícios:', updatedExercicios);
+    // Se estiver adicionando um novo exercício
+    try {
+      // Verificar se temos um treino para o dia selecionado
+      let treinoId: number | null = null;
+      
+      // Buscar o treino existente para o dia selecionado
+      const treinoExistente = await buscarTreinoParaDia(selectedDay);
+      
+      if (treinoExistente) {
+        treinoId = treinoExistente.id;
+      } else {
+        // Criar um novo treino para o dia selecionado
+        const novoTreino = await criarNovoTreino(selectedDay);
+        if (novoTreino) {
+          treinoId = novoTreino.id;
+        }
+      }
+      
+      if (!treinoId) {
+        throw new Error('Não foi possível obter ou criar um treino para este dia');
+      }
+      
+      // Criar FormData para envio
+      const formData = new FormData();
+      formData.append('treinoId', treinoId.toString());
+      formData.append('name', currentExercise.name);
+      formData.append('sets', currentExercise.sets.toString());
+      formData.append('time', currentExercise.time);
+      formData.append('restTime', currentExercise.restTime);
+      formData.append('repsPerSet', currentExercise.repsPerSet.toString());
+      formData.append('status', 'not-started');
+      
+      // Adicionar mídia se houver
+      if (selectedMediaFile) {
+        formData.append('media', selectedMediaFile);
+        formData.append('mediaType', selectedMediaType);
+      } else if (selectedYoutubeUrl) {
+        formData.append('youtubeUrl', selectedYoutubeUrl);
+      }
+      
+      // Obter token de autenticação
+      const token = localStorage.getItem('token');
+      if (!token) {
+        throw new Error('Token de autenticação não encontrado');
+      }
+      
+      // Enviar para o endpoint combinado
+      const response = await fetch(`${connectionUrl}/exercicio-com-midia`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        },
+        body: formData
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Erro ao salvar exercício');
+      }
+      
+      const data = await response.json();
+      console.log('Resposta do servidor:', data);
     
-    // Atualizar estado
+      // Adicionar o novo exercício à lista
+      const novoExercicio = data.exercicio;
+      
     setTreinos({
       ...treinos,
-      [selectedDay]: updatedExercicios
+        [selectedDay]: [
+          ...treinos[selectedDay],
+          novoExercicio
+        ]
     });
     
-    // Resetar estado de edição
-    setIsAddingExercise(false);
-    setEditingExerciseIndex(null);
+      // Resetar o formulário
     setCurrentExercise({
       name: '',
       sets: 3,
@@ -327,6 +446,122 @@ const WorkoutEditModal: FC<WorkoutEditModalProps> = ({ isOpen, onClose, alunoId,
       status: 'not-started',
       image: defaultImage
     });
+      
+      setIsAddingExercise(false);
+      setEditingExerciseIndex(null);
+      setSelectedMediaFile(null);
+      setSelectedYoutubeUrl('');
+      
+      Swal.fire({
+        title: 'Sucesso!',
+        text: 'Exercício adicionado com sucesso',
+        icon: 'success',
+        timer: 2000,
+        showConfirmButton: false
+      });
+    } catch (error) {
+      console.error('Erro ao salvar exercício:', error);
+      Swal.fire({
+        icon: 'error',
+        title: 'Erro ao salvar exercício',
+        text: error instanceof Error ? error.message : 'Erro desconhecido',
+        confirmButtonColor: '#3085d6'
+      });
+    }
+  };
+  
+  // Função auxiliar para buscar o treino para um dia específico
+  const buscarTreinoParaDia = async (dia: number): Promise<any | null> => {
+    if (!alunoPreferenciaId) return null;
+    
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) return null;
+      
+      const response = await fetch(`${connectionUrl}/personal/treino/${alunoPreferenciaId}/${dia}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      if (!response.ok) return null;
+      
+      const data = await response.json();
+      return data.treino || null;
+    } catch (error) {
+      console.error('Erro ao buscar treino:', error);
+      return null;
+    }
+  };
+  
+  // Função auxiliar para criar um novo treino
+  const criarNovoTreino = async (dia: number): Promise<any | null> => {
+    if (!alunoPreferenciaId) return null;
+    
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) return null;
+      
+      const response = await fetch(`${connectionUrl}/personal/treinos/${alunoPreferenciaId}/${dia}`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          exercicios: []
+        })
+      });
+      
+      if (!response.ok) return null;
+      
+      const data = await response.json();
+      return data.treino || null;
+    } catch (error) {
+      console.error('Erro ao criar treino:', error);
+      return null;
+    }
+  };
+
+  // Função para lidar com o upload de mídia
+  const handleMediaUploaded = (mediaType: 'image' | 'video' | 'gif', url: string) => {
+    setCurrentExercise(prev => {
+      if (mediaType === 'image') {
+        return { ...prev, image: url };
+      } else if (mediaType === 'video') {
+        return { ...prev, videoUrl: url };
+      } else {
+        return { ...prev, gifUrl: url };
+      }
+    });
+    
+    // Se estiver editando um exercício existente, atualizar a lista
+    if (editingExerciseIndex !== null) {
+      const updatedExercicios = [...treinos[selectedDay]];
+      
+      if (mediaType === 'image') {
+        updatedExercicios[editingExerciseIndex] = {
+          ...updatedExercicios[editingExerciseIndex],
+          image: url
+        };
+      } else if (mediaType === 'video') {
+        updatedExercicios[editingExerciseIndex] = {
+          ...updatedExercicios[editingExerciseIndex],
+          videoUrl: url
+        };
+      } else {
+        updatedExercicios[editingExerciseIndex] = {
+          ...updatedExercicios[editingExerciseIndex],
+          gifUrl: url
+        };
+      }
+      
+      setTreinos({
+        ...treinos,
+        [selectedDay]: updatedExercicios
+      });
+    }
   };
 
   // Remover um exercício
@@ -345,12 +580,10 @@ const WorkoutEditModal: FC<WorkoutEditModalProps> = ({ isOpen, onClose, alunoId,
 
   // Editar um exercício existente
   const handleEditExercise = (index: number) => {
-    console.log(`Editando exercício no índice ${index}`);
-    const exercicio = treinos[selectedDay][index];
-    console.log('Dados do exercício a ser editado:', exercicio);
-    setCurrentExercise({ ...exercicio });
+    setCurrentExercise(treinos[selectedDay][index]);
     setEditingExerciseIndex(index);
     setIsAddingExercise(true);
+    setShowMediaUploader(false);
   };
 
   // Excluir todos os exercícios de um dia
@@ -462,6 +695,279 @@ const WorkoutEditModal: FC<WorkoutEditModalProps> = ({ isOpen, onClose, alunoId,
     }
   };
 
+  // Renderizar o formulário de edição de exercício
+  const renderExerciseForm = () => {
+    return (
+      <div className="bg-white rounded-lg">
+        <div className="flex justify-between items-center mb-4 sticky top-0 bg-gradient-to-r from-red-600 to-red-500 p-4 rounded-t-lg text-white z-10">
+          <h3 className="text-xl font-semibold">
+            {editingExerciseIndex !== null ? 'Editar Exercício' : 'Adicionar Novo Exercício'}
+          </h3>
+          <button
+            onClick={() => {
+              setIsAddingExercise(false);
+              setEditingExerciseIndex(null);
+              setShowMediaUploader(false);
+              setCurrentExercise({
+                name: '',
+                sets: 3,
+                time: '45 Sec',
+                restTime: '1 Min',
+                repsPerSet: 10,
+                status: 'not-started',
+                image: defaultImage
+              });
+              setSelectedMediaFile(null);
+              setSelectedYoutubeUrl('');
+            }}
+            className="text-white hover:text-red-200 hover:bg-white/20 rounded-full p-1"
+          >
+            <FaTimes size={24} />
+          </button>
+        </div>
+        
+        <div className="space-y-4 p-6">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Nome do Exercício
+            </label>
+            <input
+              type="text"
+              value={currentExercise.name}
+              onChange={(e) => setCurrentExercise({...currentExercise, name: e.target.value})}
+              className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"
+              placeholder="Ex: Supino Reto"
+            />
+          </div>
+          
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Séries
+              </label>
+              <input
+                type="number"
+                min="1"
+                value={currentExercise.sets}
+                onChange={(e) => setCurrentExercise({...currentExercise, sets: parseInt(e.target.value) || 1})}
+                className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"
+              />
+            </div>
+            
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Repetições por Série
+              </label>
+              <input
+                type="number"
+                min="1"
+                value={currentExercise.repsPerSet}
+                onChange={(e) => setCurrentExercise({...currentExercise, repsPerSet: parseInt(e.target.value) || 1})}
+                className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"
+              />
+            </div>
+          </div>
+          
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Tempo
+              </label>
+              <select
+                value={currentExercise.time}
+                onChange={(e) => setCurrentExercise({...currentExercise, time: e.target.value})}
+                className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"
+              >
+                {timerOptions.map((option) => (
+                  <option key={option} value={option}>
+                    {option}
+                  </option>
+                ))}
+              </select>
+            </div>
+            
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Tempo de Descanso
+              </label>
+              <select
+                value={currentExercise.restTime}
+                onChange={(e) => setCurrentExercise({...currentExercise, restTime: e.target.value})}
+                className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"
+              >
+                {restTimeOptions.map((option) => (
+                  <option key={option} value={option}>
+                    {option}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+          
+          {/* Substituir o uploader antigo pelo novo para novos exercícios */}
+          {editingExerciseIndex === null ? (
+            <MediaUploaderCombinado onMediaSelected={handleMediaSelected} />
+          ) : (
+            <>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Imagem do Exercício
+                </label>
+                <div className="flex flex-wrap items-center gap-4">
+                  <div className="relative">
+                    <img
+                      src={currentExercise.image || defaultImage}
+                      alt="Imagem do exercício"
+                      className="w-20 h-20 object-cover rounded-md border"
+                    />
+                    {hasMedia(currentExercise) && (
+                      <div className="absolute -top-2 -right-2 flex">
+                        {currentExercise.videoUrl && (
+                          <span className="w-5 h-5 flex items-center justify-center rounded-full bg-red-500 text-white" title="Vídeo disponível">
+                            <FaVideo size={10} />
+                          </span>
+                        )}
+                        {currentExercise.gifUrl && (
+                          <span className="w-5 h-5 flex items-center justify-center rounded-full bg-purple-500 text-white ml-1" title="GIF disponível">
+                            <FaFilm size={10} />
+                          </span>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setShowMediaUploader(!showMediaUploader)}
+                    className={`px-4 py-2 ${showMediaUploader ? 'bg-gray-600' : 'bg-red-600'} text-white rounded-md hover:opacity-90 transition-opacity flex items-center`}
+                  >
+                    {showMediaUploader ? (
+                      <>
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                        Ocultar Uploader
+                      </>
+                    ) : (
+                      <>
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                        Adicionar/Alterar Mídia
+                      </>
+                    )}
+                  </button>
+                </div>
+              </div>
+              
+              {showMediaUploader && currentExercise.id && (
+                <div className="bg-gray-50 p-4 rounded-lg border border-gray-200 mt-4">
+                  <MediaUploader
+                    exercicioId={currentExercise.id}
+                    onMediaUploaded={handleMediaUploaded}
+                    currentImage={currentExercise.image}
+                    currentVideo={currentExercise.videoUrl}
+                    currentGif={currentExercise.gifUrl}
+                  />
+                </div>
+              )}
+            </>
+          )}
+          
+          <div className="flex justify-end pt-4 sticky bottom-0 bg-white pb-2 border-t mt-6">
+            <button
+              onClick={handleSaveExercise}
+              className="px-6 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors"
+            >
+              Salvar Exercício
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  // Renderizar um card de exercício na lista
+  const renderExerciseCard = (exercise: Exercise, index: number) => {
+    return (
+      <motion.div
+        key={index}
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: -20 }}
+        className={`p-4 border rounded-md mb-4 hover:shadow-md transition-shadow ${
+          hasMedia(exercise) ? 'border-red-200 bg-red-50/30' : 'border-gray-200'
+        }`}
+      >
+        <div className="flex justify-between items-start">
+          <div className="flex items-start gap-3">
+            <div className="relative hidden sm:block">
+              <img 
+                src={exercise.image || defaultImage} 
+                alt={exercise.name}
+                className="w-14 h-14 object-cover rounded-md"
+              />
+              {hasMedia(exercise) && (
+                <div className="absolute -top-2 -right-2">
+                  {exercise.videoUrl && (
+                    <span className="w-5 h-5 flex items-center justify-center rounded-full bg-red-500 text-white" title="Vídeo disponível">
+                      <FaVideo size={10} />
+                    </span>
+                  )}
+                </div>
+              )}
+            </div>
+            <div>
+              <h4 className="font-medium text-lg">{exercise.name}</h4>
+              <div className="text-sm text-gray-600 mt-1 flex flex-wrap gap-2">
+                <span className="bg-gray-100 px-2 py-1 rounded-md">{exercise.sets} séries</span>
+                <span className="bg-gray-100 px-2 py-1 rounded-md">{exercise.repsPerSet} repetições</span>
+                <span className="bg-gray-100 px-2 py-1 rounded-md">{exercise.time}</span>
+              </div>
+            </div>
+          </div>
+          <div className="flex space-x-2">
+            {/* Indicadores de mídia */}
+            <div className="flex space-x-1 mr-2">
+              {exercise.videoUrl && (
+                <span className="w-6 h-6 flex items-center justify-center rounded-full bg-red-100 text-red-600" title="Vídeo disponível">
+                  <FaVideo size={12} />
+                </span>
+              )}
+              {exercise.gifUrl && (
+                <span className="w-6 h-6 flex items-center justify-center rounded-full bg-purple-100 text-purple-600" title="GIF disponível">
+                  <FaFilm size={12} />
+                </span>
+              )}
+              {exercise.image && !exercise.image.includes('placeholder') && (
+                <span className="w-6 h-6 flex items-center justify-center rounded-full bg-blue-100 text-blue-600" title="Imagem disponível">
+                  <FaImage size={12} />
+                </span>
+              )}
+            </div>
+            
+            {/* Botões de edição e exclusão */}
+            <button
+              onClick={() => handleEditExercise(index)}
+              className="p-1 text-blue-600 hover:bg-blue-100 rounded-full"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
+              </svg>
+            </button>
+            <button
+              onClick={() => handleRemoveExercise(index)}
+              className="p-1 text-red-600 hover:bg-red-100 rounded-full"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
+              </svg>
+            </button>
+          </div>
+        </div>
+      </motion.div>
+    );
+  };
+
   if (!isOpen) return null;
 
   return (
@@ -483,7 +989,7 @@ const WorkoutEditModal: FC<WorkoutEditModalProps> = ({ isOpen, onClose, alunoId,
           />
           
           <motion.div 
-            className="bg-white rounded-xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto m-4 relative z-50"
+            className="bg-white rounded-xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden m-4 relative z-50"
             initial={{ scale: 0.9, opacity: 0, y: 20 }}
             animate={{ scale: 1, opacity: 1, y: 0 }}
             exit={{ scale: 0.9, opacity: 0, y: 20 }}
@@ -494,7 +1000,7 @@ const WorkoutEditModal: FC<WorkoutEditModalProps> = ({ isOpen, onClose, alunoId,
             }}
           >
             {/* Modal header */}
-            <div className="p-6 border-b flex justify-between items-center bg-gradient-to-r from-red-600 to-red-500 text-white rounded-t-xl">
+            <div className="p-6 border-b flex justify-between items-center bg-gradient-to-r from-red-600 to-red-500 text-white rounded-t-xl sticky top-0 z-20">
               <div className="flex items-center">
                 <FaDumbbell className="text-2xl mr-3" />
                 <h2 className="text-2xl font-bold">Gerenciar Treinos de {alunoName}</h2>
@@ -510,6 +1016,7 @@ const WorkoutEditModal: FC<WorkoutEditModalProps> = ({ isOpen, onClose, alunoId,
             </div>
 
             {/* Modal content */}
+            <div className="overflow-y-auto max-h-[calc(90vh-80px)]">
             <div className="p-6">
               {isLoading ? (
                 <div className="flex justify-center items-center h-64">
@@ -522,7 +1029,7 @@ const WorkoutEditModal: FC<WorkoutEditModalProps> = ({ isOpen, onClose, alunoId,
               ) : (
                 <>
                   {/* Day selector */}
-                  <div className="mb-8">
+                    <div className="mb-8 sticky top-0 z-10 bg-white pt-2 pb-4">
                     <h3 className="text-lg font-medium mb-4 text-gray-700">Selecione o dia para editar:</h3>
                     <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-7 gap-3">
                       {weekdays.map((day, index) => (
@@ -551,14 +1058,14 @@ const WorkoutEditModal: FC<WorkoutEditModalProps> = ({ isOpen, onClose, alunoId,
 
                   {/* Current day workouts */}
                   <div className="mb-8">
-                    <div className="flex justify-between items-center mb-4">
+                      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-3">
                       <h3 className="text-lg font-medium text-gray-700">
                         Exercícios para {weekdays[selectedDay]}{' '}
                         <span className="text-gray-500 text-sm">
                           (Dia {selectedDay})
                         </span>
                       </h3>
-                      <div className="space-x-3">
+                        <div className="flex flex-wrap gap-3">
                         <motion.button
                           onClick={() => {
                             setCurrentExercise({
@@ -598,74 +1105,13 @@ const WorkoutEditModal: FC<WorkoutEditModalProps> = ({ isOpen, onClose, alunoId,
                     <AnimatePresence>
                       {treinos[selectedDay] && treinos[selectedDay].length > 0 ? (
                         <motion.div 
-                          className="space-y-4"
+                            className="space-y-4 max-h-[50vh] overflow-y-auto pr-2 pb-4"
                           initial={{ opacity: 0 }}
                           animate={{ opacity: 1 }}
                           exit={{ opacity: 0 }}
                         >
                           {treinos[selectedDay].map((exercise, index) => (
-                            <motion.div
-                              key={index}
-                              className="border rounded-xl p-5 flex flex-col md:flex-row justify-between items-start md:items-center bg-white shadow-sm hover:shadow-md transition-shadow"
-                              initial={{ opacity: 0, y: 20 }}
-                              animate={{ opacity: 1, y: 0 }}
-                              exit={{ opacity: 0, y: -20 }}
-                              transition={{ duration: 0.2, delay: index * 0.05 }}
-                              whileHover={{ scale: 1.01 }}
-                            >
-                              <div className="flex flex-col md:flex-row items-start md:items-center mb-3 md:mb-0">
-                                <div className="relative mr-4 mb-2 md:mb-0">
-                                  <img
-                                    src={exercise.image}
-                                    alt={exercise.name}
-                                    className="w-20 h-20 object-cover rounded-lg shadow-md"
-                                    onError={(e) => {
-                                      (e.target as HTMLImageElement).src = defaultImage;
-                                    }}
-                                  />
-                                </div>
-                                <div>
-                                  <h4 className="font-bold text-lg text-gray-800">{exercise.name}</h4>
-                                  <div className="text-sm text-gray-600 mt-2 grid grid-cols-2 gap-2">
-                                    <span className="flex items-center bg-gray-100 rounded-full px-3 py-1">
-                                      <span className="font-medium">Séries:</span> 
-                                      <span className="ml-1 text-red-700">{exercise.sets}</span>
-                                    </span>
-                                    <span className="flex items-center bg-gray-100 rounded-full px-3 py-1">
-                                      <span className="font-medium">Tempo:</span> 
-                                      <span className="ml-1 text-red-700">{exercise.time}</span>
-                                    </span>
-                                    <span className="flex items-center bg-gray-100 rounded-full px-3 py-1">
-                                      <span className="font-medium">Descanso:</span> 
-                                      <span className="ml-1 text-red-700">{exercise.restTime}</span>
-                                    </span>
-                                    <span className="flex items-center bg-gray-100 rounded-full px-3 py-1">
-                                      <span className="font-medium">Repetições:</span> 
-                                      <span className="ml-1 text-red-700">{exercise.repsPerSet}</span>
-                                    </span>
-                                  </div>
-                                </div>
-                              </div>
-
-                              <div className="flex space-x-2">
-                                <motion.button
-                                  onClick={() => handleEditExercise(index)}
-                                  className="bg-red-500 text-white p-2 rounded-lg hover:bg-red-600 transition"
-                                  whileHover={{ scale: 1.1 }}
-                                  whileTap={{ scale: 0.9 }}
-                                >
-                                  <FiEdit2 />
-                                </motion.button>
-                                <motion.button
-                                  onClick={() => handleRemoveExercise(index)}
-                                  className="bg-gray-500 text-white p-2 rounded-lg hover:bg-gray-600 transition"
-                                  whileHover={{ scale: 1.1 }}
-                                  whileTap={{ scale: 0.9 }}
-                                >
-                                  <FaTrash />
-                                </motion.button>
-                              </div>
-                            </motion.div>
+                              renderExerciseCard(exercise, index)
                           ))}
                         </motion.div>
                       ) : (
@@ -685,10 +1131,14 @@ const WorkoutEditModal: FC<WorkoutEditModalProps> = ({ isOpen, onClose, alunoId,
                         </motion.div>
                       )}
                     </AnimatePresence>
+                    </div>
+                  </>
+                )}
                   </div>
 
                   {/* Save button */}
-                  <div className="flex justify-end border-t pt-6">
+              {!isLoading && (
+                <div className="flex justify-end border-t p-6 bg-white sticky bottom-0 shadow-md z-10">
                     <motion.button
                       onClick={handleSave}
                       className="bg-gradient-to-r from-red-600 to-red-500 text-white py-3 px-8 rounded-xl shadow-md font-bold"
@@ -699,7 +1149,6 @@ const WorkoutEditModal: FC<WorkoutEditModalProps> = ({ isOpen, onClose, alunoId,
                       {isSaving ? 'Salvando...' : 'Salvar Treino'}
                     </motion.button>
                   </div>
-                </>
               )}
             </div>
 
@@ -707,13 +1156,13 @@ const WorkoutEditModal: FC<WorkoutEditModalProps> = ({ isOpen, onClose, alunoId,
             <AnimatePresence>
               {isAddingExercise && (
                 <motion.div 
-                  className="fixed inset-0 z-[60] flex items-center justify-center backdrop-blur-md"
+                  className="fixed inset-0 z-[60] flex items-center justify-center overflow-hidden"
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
                 >
                   <motion.div 
-                    className="fixed inset-0 bg-black/30"
+                    className="fixed inset-0 bg-black/30 backdrop-blur-sm"
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
@@ -724,165 +1173,14 @@ const WorkoutEditModal: FC<WorkoutEditModalProps> = ({ isOpen, onClose, alunoId,
                   />
                   
                   <motion.div 
-                    className="bg-white rounded-xl shadow-2xl max-w-2xl w-full p-6 m-4 relative z-50"
+                    className="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[80vh] overflow-y-auto m-4 relative z-50"
                     initial={{ scale: 0.9, opacity: 0, y: 20 }}
                     animate={{ scale: 1, opacity: 1, y: 0 }}
                     exit={{ scale: 0.9, opacity: 0, y: 20 }}
                     transition={{ type: "spring", damping: 25, stiffness: 300 }}
                     onClick={(e) => e.stopPropagation()}
                   >
-                    <div className="flex justify-between items-center mb-6">
-                      <h3 className="text-xl font-bold text-gray-800 flex items-center">
-                        <FaDumbbell className="mr-2 text-red-600" />
-                        {editingExerciseIndex !== null ? 'Editar Exercício' : 'Adicionar Exercício'}
-                      </h3>
-                      <motion.button
-                        onClick={() => {
-                          setIsAddingExercise(false);
-                          setEditingExerciseIndex(null);
-                        }}
-                        className="text-gray-500 hover:text-gray-700 bg-gray-100 p-2 rounded-full"
-                        whileHover={{ scale: 1.1, backgroundColor: "#f3f4f6" }}
-                        whileTap={{ scale: 0.9 }}
-                      >
-                        <FaTimes />
-                      </motion.button>
-                    </div>
-
-                    <div className="space-y-5">
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                          Nome do Exercício
-                        </label>
-                        <input
-                          type="text"
-                          className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 transition"
-                          value={currentExercise.name}
-                          onChange={(e) =>
-                            setCurrentExercise({ ...currentExercise, name: e.target.value })
-                          }
-                          placeholder="Ex: Supino reto"
-                        />
-                      </div>
-
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Número de Séries
-                          </label>
-                          <input
-                            type="number"
-                            className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 transition"
-                            value={currentExercise.sets}
-                            min="1"
-                            onChange={(e) =>
-                              setCurrentExercise({
-                                ...currentExercise,
-                                sets: parseInt(e.target.value) || 1
-                              })
-                            }
-                          />
-                        </div>
-
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Tempo da Série
-                          </label>
-                          <select
-                            className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 transition"
-                            value={currentExercise.time}
-                            onChange={(e) =>
-                              setCurrentExercise({ ...currentExercise, time: e.target.value })
-                            }
-                          >
-                            {timerOptions.map((option) => (
-                              <option key={option} value={option}>
-                                {option}
-                              </option>
-                            ))}
-                          </select>
-                        </div>
-
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Tempo de Descanso
-                          </label>
-                          <select
-                            className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 transition"
-                            value={currentExercise.restTime}
-                            onChange={(e) =>
-                              setCurrentExercise({ ...currentExercise, restTime: e.target.value })
-                            }
-                          >
-                            {restTimeOptions.map((option) => (
-                              <option key={option} value={option}>
-                                {option}
-                              </option>
-                            ))}
-                          </select>
-                        </div>
-                      </div>
-
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                          Repetições por Série
-                        </label>
-                        <input
-                          type="number"
-                          className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 transition"
-                          value={currentExercise.repsPerSet}
-                          min="1"
-                          onChange={(e) =>
-                            setCurrentExercise({
-                              ...currentExercise,
-                              repsPerSet: parseInt(e.target.value) || 1
-                            })
-                          }
-                        />
-                      </div>
-
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                          URL da Imagem
-                        </label>
-                        <input
-                          type="text"
-                          className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 transition"
-                          value={currentExercise.image}
-                          onChange={(e) =>
-                            setCurrentExercise({ ...currentExercise, image: e.target.value })
-                          }
-                          placeholder="https://exemplo.com/imagem.jpg"
-                        />
-                        <div className="mt-3 flex items-center">
-                          <motion.img
-                            src={currentExercise.image}
-                            alt="Prévia"
-                            className="w-24 h-24 object-cover rounded-lg border shadow-sm"
-                            onError={(e) => {
-                              (e.target as HTMLImageElement).src = defaultImage;
-                            }}
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            transition={{ duration: 0.3 }}
-                          />
-                          <p className="ml-4 text-sm text-gray-500">
-                            Prévia da imagem do exercício
-                          </p>
-                        </div>
-                      </div>
-
-                      <div className="flex justify-end pt-4">
-                        <motion.button
-                          className="bg-gradient-to-r from-red-600 to-red-500 text-white py-3 px-8 rounded-xl shadow-md font-bold"
-                          onClick={handleSaveExercise}
-                          whileHover={{ scale: 1.05, boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.1)" }}
-                          whileTap={{ scale: 0.95 }}
-                        >
-                          {editingExerciseIndex !== null ? 'Atualizar' : 'Adicionar'}
-                        </motion.button>
-                      </div>
-                    </div>
+                    {renderExerciseForm()}
                   </motion.div>
                 </motion.div>
               )}

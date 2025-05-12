@@ -4,6 +4,7 @@ import Swal from 'sweetalert2';
 import ExerciseDetailModal from '../../components/GeralPurposeComponents/ExerciseDetailModal/ExerciseDetailModal';
 import DaySelector from '../../components/GeralPurposeComponents/DaySelector/DaySelector';
 import { motion } from 'framer-motion';
+import { FaVideo, FaImage, FaPlayCircle, FaDumbbell } from 'react-icons/fa';
 
 interface Exercicio {
   id: number;
@@ -14,6 +15,8 @@ interface Exercicio {
   repsPerSet: number;
   status: string;
   image: string;
+  videoUrl?: string;
+  gifUrl?: string;
   treinoId?: number;
 }
 
@@ -133,6 +136,15 @@ const WorkoutPlan: FC = () => {
     }
   };
 
+  // Verificar se o exercício tem mídias
+  const hasMedia = (exercise: Exercicio): boolean => {
+    return !!(
+      exercise.videoUrl || 
+      exercise.gifUrl || 
+      (exercise.image && !exercise.image.includes('placeholder'))
+    );
+  };
+
   // Abrir modal de detalhes do exercício
   const handleExerciseClick = (exercise: Exercicio) => {
     setSelectedExercise(exercise);
@@ -189,47 +201,123 @@ const WorkoutPlan: FC = () => {
               exercisesData[selectedDayOfWeek].map((exercise, index) => (
                 <motion.div
                   key={exercise.id || index}
-                  className="bg-white rounded-xl p-6 shadow-sm hover:shadow-lg transition-all transform cursor-pointer"
+                  className={`bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-lg transition-all transform cursor-pointer border ${hasMedia(exercise) ? 'border-red-200' : 'border-gray-100'}`}
                   onClick={() => handleExerciseClick(exercise)}
-                  whileHover={{ scale: 1.02 }}
+                  whileHover={{ scale: 1.02, y: -5 }}
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.1 + index * 0.05 }}
                 >
-                  <div className="aspect-w-16 aspect-h-9 mb-4">
-                    <img
-                      src={exercise.image || 'https://via.placeholder.com/150'}
-                      alt={exercise.name}
-                      className="rounded-lg object-cover w-full h-48"
-                      onError={(e) => {
-                        (e.target as HTMLImageElement).src = 'https://via.placeholder.com/150?text=Imagem+não+encontrada';
-                      }}
-                    />
+                  <div className="relative">
+                    <div className="aspect-w-16 aspect-h-9">
+                      <img
+                        src={exercise.image || 'https://via.placeholder.com/150'}
+                        alt={exercise.name}
+                        className="w-full h-48 object-cover"
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).src = 'https://via.placeholder.com/150?text=Imagem+não+encontrada';
+                        }}
+                      />
+                    </div>
+                    
+                    {/* Indicadores de mídia */}
+                    <div className="absolute top-2 right-2 flex gap-1">
+                      {exercise.videoUrl && (
+                        <span className="px-2 py-1 bg-red-500 text-white text-xs font-bold rounded-full shadow-md flex items-center">
+                          {exercise.videoUrl.includes('youtube.com/embed/') ? (
+                            <FaVideo className="mr-1" />
+                          ) : (
+                            <FaPlayCircle className="mr-1" />
+                          )}
+                          Vídeo
+                        </span>
+                      )}
+                      {exercise.gifUrl && (
+                        <span className="px-2 py-1 bg-purple-500 text-white text-xs font-bold rounded-full shadow-md flex items-center">
+                          <FaImage className="mr-1" />
+                          GIF
+                        </span>
+                      )}
+                    </div>
+                    
+                    {/* Status badge */}
+                    <div className="absolute top-2 left-2">
+                      <span 
+                        className={`px-2 py-1 text-xs font-bold rounded-full shadow-md ${
+                          exercise.status === 'completed' 
+                            ? 'bg-green-500 text-white' 
+                            : exercise.status === 'inprogress' 
+                            ? 'bg-blue-500 text-white' 
+                            : 'bg-gray-200 text-gray-700'
+                        }`}
+                      >
+                        {exercise.status === 'completed' 
+                          ? 'Completado' 
+                          : exercise.status === 'inprogress' 
+                          ? 'Em progresso' 
+                          : 'Não iniciado'}
+                      </span>
+                    </div>
+                    
+                    {/* Gradiente sobre a imagem para destacar o nome */}
+                    <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-black to-transparent"></div>
+                    
+                    {/* Nome do exercício sobre a imagem */}
+                    <h3 className="absolute bottom-2 left-3 text-lg font-bold text-white">{exercise.name}</h3>
                   </div>
-                  <h3 className="text-lg font-semibold text-gray-900">{exercise.name}</h3>
-                  <div className="mt-2 space-y-1">
-                    <p className="text-sm text-gray-600">Séries - {exercise.sets}</p>
-                    <p className="text-sm text-gray-600">Tempo - {exercise.time}</p>
-                    <p className="text-sm text-gray-600">Descanso - {exercise.restTime}</p>
-                    <p className="text-sm text-gray-600">Repetições por Série - {exercise.repsPerSet}</p>
-                  </div>
-                  <div className="mt-4">
-                    <div
-                      className={`h-2 rounded-full ${
-                        exercise.status === 'completed'
-                          ? 'bg-teal-500'
-                          : exercise.status === 'inprogress'
-                          ? 'bg-indigo-500'
-                          : 'bg-gray-200'
-                      }`}
-                    />
-                    <p className="mt-2 text-sm capitalize text-gray-600">
-                      {exercise.status === 'completed' 
-                        ? 'Completado' 
-                        : exercise.status === 'inprogress' 
-                        ? 'Em progresso' 
-                        : 'Não iniciado'}
-                    </p>
+                  
+                  <div className="p-4">
+                    <div className="grid grid-cols-2 gap-2 mb-3">
+                      <div className="bg-gray-50 rounded-md p-2 text-center">
+                        <p className="text-xs text-gray-500">Séries</p>
+                        <p className="font-semibold text-gray-800">{exercise.sets}</p>
+                      </div>
+                      <div className="bg-gray-50 rounded-md p-2 text-center">
+                        <p className="text-xs text-gray-500">Repetições</p>
+                        <p className="font-semibold text-gray-800">{exercise.repsPerSet}</p>
+                      </div>
+                    </div>
+                    
+                    <div className="flex justify-between items-center text-sm text-gray-600">
+                      <div>
+                        <span className="font-medium">Tempo:</span> {exercise.time}
+                      </div>
+                      <div>
+                        <span className="font-medium">Descanso:</span> {exercise.restTime}
+                      </div>
+                    </div>
+                    
+                    <div className="mt-4">
+                      <div
+                        className={`h-2 rounded-full ${
+                          exercise.status === 'completed'
+                            ? 'bg-gradient-to-r from-teal-400 to-teal-500'
+                            : exercise.status === 'inprogress'
+                            ? 'bg-gradient-to-r from-blue-400 to-blue-500'
+                            : 'bg-gray-200'
+                        }`}
+                      />
+                      <div className="flex justify-between items-center mt-2">
+                        {/* Mensagem sobre mídias disponíveis */}
+                        {hasMedia(exercise) && (
+                          <div className="flex items-center text-xs text-blue-600">
+                            <FaPlayCircle className="mr-1" />
+                            <span>Demonstração disponível</span>
+                          </div>
+                        )}
+                        
+                        {/* Botão para iniciar */}
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleExerciseClick(exercise);
+                          }}
+                          className="text-xs bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded-full"
+                        >
+                          Ver detalhes
+                        </button>
+                      </div>
+                    </div>
                   </div>
                 </motion.div>
               ))
@@ -240,9 +328,7 @@ const WorkoutPlan: FC = () => {
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.2 }}
               >
-                <svg className="w-16 h-16 mb-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
+                <FaDumbbell className="w-16 h-16 mb-4 text-gray-400" />
                 <p className="text-xl font-medium">Nenhum exercício programado para {weekdays[selectedDayOfWeek]}</p>
                 <p className="mt-2 text-gray-400">Fale com seu personal para agendar treinos para este dia</p>
               </motion.div>

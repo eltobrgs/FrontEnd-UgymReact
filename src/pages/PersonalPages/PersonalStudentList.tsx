@@ -7,13 +7,16 @@ import { motion } from 'framer-motion';
 
 interface Student {
   id: number;
+  userId: number;
   name: string;
-  age: number;
+  email: string;
+  age: number | string;
   weight: string;
   height: string;
   goal: string;
   trainingTime: string;
   imageUrl?: string;
+  imc?: string;
   gender?: string;
   healthCondition?: string;
   experience?: string;
@@ -65,7 +68,8 @@ const PersonalStudentList: FC = () => {
           healthCondition: student.healthCondition || '',
           experience: student.experience || '',
           activityLevel: student.activityLevel || '',
-          physicalLimitations: student.physicalLimitations || ''
+          physicalLimitations: student.physicalLimitations || '',
+          imc: student.imc || ''
         }));
         
         setStudents(processedData);
@@ -177,6 +181,7 @@ const PersonalStudentList: FC = () => {
                   goal={student.goal}
                   trainingTime={student.trainingTime}
                   imageUrl={student.imageUrl}
+                  imc={student.imc}
                 />
               </motion.div>
             ))}

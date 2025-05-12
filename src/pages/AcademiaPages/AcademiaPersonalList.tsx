@@ -99,6 +99,12 @@ const AcademiaPersonalList = () => {
     }
   }, [searchTerm, personals]);
 
+  // Função para lidar com a exclusão de um personal
+  const handlePersonalDelete = () => {
+    // Recarregar a lista de personais após a exclusão
+    fetchPersonals();
+  };
+
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="flex justify-between items-center mb-6">
@@ -146,6 +152,7 @@ const AcademiaPersonalList = () => {
               workLocation={personal.workLocation || "N/A"}
               pricePerHour={personal.pricePerHour || "N/A"}
               cref={personal.cref || "Não informado"}
+              onDelete={handlePersonalDelete}
             />
           ))}
         </div>

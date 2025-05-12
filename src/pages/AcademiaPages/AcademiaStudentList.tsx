@@ -17,6 +17,7 @@ interface Student {
   trainingTime: string;
   imageUrl?: string;
   academiaId?: number | null;
+  imc?: string;
 }
 
 const AcademiaStudentList: FC = () => {
@@ -63,7 +64,8 @@ const AcademiaStudentList: FC = () => {
         goal: student.goal || 'Não informado',
         trainingTime: student.trainingTime || 'Iniciante',
         imageUrl: student.imageUrl || undefined,
-        academiaId: student.academiaId
+        academiaId: student.academiaId,
+        imc: student.imc || 'Não calculado'
       }));
       
       setStudents(processedData);
@@ -87,6 +89,12 @@ const AcademiaStudentList: FC = () => {
     );
     setFilteredStudents(filtered);
   }, [searchTerm, students]);
+
+  // Função para lidar com a exclusão de um aluno
+  const handleStudentDelete = () => {
+    // Recarregar a lista de alunos após a exclusão
+    fetchStudents();
+  };
 
   // Função para associar um aluno à academia
   const handleAssociateStudent = async () => {
@@ -225,6 +233,8 @@ const AcademiaStudentList: FC = () => {
                   goal={student.goal}
                   trainingTime={student.trainingTime}
                   imageUrl={student.imageUrl}
+                  imc={student.imc}
+                  onDelete={handleStudentDelete}
                 />
               ))}
             </div>

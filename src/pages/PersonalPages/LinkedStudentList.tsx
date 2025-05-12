@@ -13,46 +13,47 @@ interface Student {
   goal: string;
   trainingTime: string;
   imageUrl?: string;
+  imc?: string;
 }
 
-const ExpecStudentList: FC = () => {
+const LinkedStudentList: FC = () => {
   const [students, setStudents] = useState<Student[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [filteredStudents, setFilteredStudents] = useState<Student[]>([]);
 
-  useEffect(() => {
-    const fetchStudents = async () => {
-      setIsLoading(true);
-      try {
-        const token = localStorage.getItem('token');
-        if (!token) {
-          throw new Error('Token não encontrado');
-        }
-
-        const response = await fetch(`${connectionUrl}/personal/meus-alunos`, {
-          method: 'GET',
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          }
-        });
-
-        if (!response.ok) {
-          throw new Error('Erro ao buscar lista de alunos');
-        }
-
-        const data = await response.json();
-        setStudents(data);
-        setFilteredStudents(data);
-      } catch (error) {
-        console.error('Erro ao buscar alunos:', error);
-        Swal.fire('Erro!', 'Não foi possível carregar a lista de alunos', 'error');
-      } finally {
-        setIsLoading(false);
+  const fetchStudents = async () => {
+    setIsLoading(true);
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        throw new Error('Token não encontrado');
       }
-    };
 
+      const response = await fetch(`${connectionUrl}/personal/meus-alunos`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error('Erro ao buscar lista de alunos');
+      }
+
+      const data = await response.json();
+      setStudents(data);
+      setFilteredStudents(data);
+    } catch (error) {
+      console.error('Erro ao buscar alunos:', error);
+      Swal.fire('Erro!', 'Não foi possível carregar a lista de alunos', 'error');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
     fetchStudents();
   }, []);
 
@@ -63,6 +64,11 @@ const ExpecStudentList: FC = () => {
     );
     setFilteredStudents(filtered);
   }, [searchTerm, students]);
+
+  const handleUnlinkStudent = () => {
+    // Recarregar a lista após desvincular um aluno
+    fetchStudents();
+  };
 
   if (isLoading) {
     return (
@@ -116,6 +122,9 @@ const ExpecStudentList: FC = () => {
                 goal={student.goal}
                 trainingTime={student.trainingTime}
                 imageUrl={student.imageUrl}
+                imc={student.imc}
+                showUnlinkFromPersonal={true}
+                onUnlinkFromPersonal={handleUnlinkStudent}
               />
             ))}
           </div>
@@ -125,4 +134,4 @@ const ExpecStudentList: FC = () => {
   );
 };
 
-export default ExpecStudentList;
+export default LinkedStudentList;

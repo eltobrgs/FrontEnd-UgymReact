@@ -1,6 +1,7 @@
-import React from 'react';
-import { FaTimes, FaBriefcase, FaMapMarkerAlt, FaDollarSign, FaGraduationCap, FaPhone, FaEnvelope, FaClock } from 'react-icons/fa';
+import React, { useState, useEffect } from 'react';
+import { FaTimes, FaBriefcase, FaMapMarkerAlt, FaDollarSign, FaGraduationCap, FaPhone, FaEnvelope, FaClock, FaUserTie } from 'react-icons/fa';
 import { motion, AnimatePresence } from 'framer-motion';
+import { connectionUrl } from '../../config/connection';
 
 interface PersonalDetailModalProps {
   isOpen: boolean;
@@ -13,7 +14,7 @@ interface PersonalDetailModalProps {
     workLocation: string;
     pricePerHour: string;
     specializations: string[];
-    imageUrl: string;
+    imageUrl?: string;
     education: string[];
     certifications: string[];
     biography: string;
@@ -26,6 +27,58 @@ interface PersonalDetailModalProps {
 }
 
 const PersonalDetailModal: React.FC<PersonalDetailModalProps> = ({ isOpen, onClose, personal }) => {
+  const [imageError, setImageError] = useState(false);
+  const [personalAvatar, setPersonalAvatar] = useState<string | undefined>(personal.imageUrl);
+  
+  // Efeito para buscar dados do personal diretamente da API se necessário
+  useEffect(() => {
+    const fetchPersonalData = async () => {
+      if (isOpen && !personal.imageUrl) {
+        try {
+          const token = localStorage.getItem('token');
+          if (!token) return;
+
+          const response = await fetch(`${connectionUrl}/personal/detalhes/${personal.id}`, {
+            headers: {
+              'Authorization': `Bearer ${token}`
+            }
+          });
+
+          if (response.ok) {
+            const data = await response.json();
+            if (data.personalAvatar) {
+              console.log(`[PersonalDetailModal] Imagem obtida da API para ${personal.name} (ID: ${personal.id}):`, data.personalAvatar);
+              setPersonalAvatar(data.personalAvatar);
+            }
+          }
+        } catch (error) {
+          console.error(`[PersonalDetailModal] Erro ao buscar dados do personal ${personal.id}:`, error);
+        }
+      }
+    };
+
+    fetchPersonalData();
+  }, [isOpen, personal.id, personal.imageUrl, personal.name]);
+  
+  // Efeito para logar informações da imagem para depuração
+  useEffect(() => {
+    if (isOpen) {
+      console.log(`[PersonalDetailModal] ID: ${personal.id}, Nome: ${personal.name}, ImageUrl:`, personalAvatar || personal.imageUrl);
+    }
+  }, [isOpen, personal.id, personal.name, personal.imageUrl, personalAvatar]);
+  
+  const handleImageError = () => {
+    console.error(`[PersonalDetailModal] Erro ao carregar imagem para ${personal.name} (ID: ${personal.id}), URL:`, personalAvatar || personal.imageUrl);
+    setImageError(true);
+  };
+  
+  const handleImageLoad = () => {
+    console.log(`[PersonalDetailModal] Imagem carregada com sucesso para ${personal.name} (ID: ${personal.id})`);
+  };
+  
+  // Verificar se a URL da imagem é válida
+  const effectiveImageUrl = personalAvatar || personal.imageUrl;
+  
   if (!isOpen) return null;
 
   return (
@@ -60,11 +113,19 @@ const PersonalDetailModal: React.FC<PersonalDetailModalProps> = ({ isOpen, onClo
           >
             {/* Header com imagem e botão de fechar */}
             <div className="relative">
-              <img 
-                src={personal.imageUrl} 
-                alt={personal.name} 
-                className="w-full h-48 object-cover rounded-t-xl"
-              />
+              {effectiveImageUrl && !imageError ? (
+                <img 
+                  src={effectiveImageUrl} 
+                  alt={`Foto de ${personal.name}`} 
+                  className="w-full h-64 object-cover rounded-t-xl"
+                  onError={handleImageError}
+                  onLoad={handleImageLoad}
+                />
+              ) : (
+                <div className="w-full h-64 bg-gradient-to-r from-blue-100 to-blue-200 flex items-center justify-center rounded-t-xl">
+                  <FaUserTie className="text-blue-300" size={100} />
+                </div>
+              )}
               <motion.button 
                 onClick={onClose}
                 className="absolute top-4 right-4 bg-red-600 p-2 rounded-full hover:bg-red-700 text-white shadow-md"
@@ -73,8 +134,8 @@ const PersonalDetailModal: React.FC<PersonalDetailModalProps> = ({ isOpen, onClo
               >
                 <FaTimes size={18} />
               </motion.button>
-              <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black to-transparent p-4">
-                <h2 className="text-2xl font-bold text-white">{personal.name}</h2>
+              <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black to-transparent p-6">
+                <h2 className="text-3xl font-bold text-white drop-shadow-md">{personal.name}</h2>
               </div>
             </div>
 
@@ -90,7 +151,7 @@ const PersonalDetailModal: React.FC<PersonalDetailModalProps> = ({ isOpen, onClo
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: 0.1 }}
                   >
-                    <FaGraduationCap className="mr-3 text-red-600" />
+                    <FaGraduationCap className="mr-3 text-blue-600" />
                     <span className="font-medium">CREF: {personal.cref}</span>
                   </motion.div>
                   
@@ -100,7 +161,7 @@ const PersonalDetailModal: React.FC<PersonalDetailModalProps> = ({ isOpen, onClo
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: 0.2 }}
                   >
-                    <FaBriefcase className="mr-3 text-red-600" />
+                    <FaBriefcase className="mr-3 text-blue-600" />
                     <span>{personal.yearsOfExperience !== "N/A" ? `${personal.yearsOfExperience} anos de experiência` : "Experiência não informada"}</span>
                   </motion.div>
                   
@@ -110,7 +171,7 @@ const PersonalDetailModal: React.FC<PersonalDetailModalProps> = ({ isOpen, onClo
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: 0.3 }}
                   >
-                    <FaMapMarkerAlt className="mr-3 text-red-600" />
+                    <FaMapMarkerAlt className="mr-3 text-blue-600" />
                     <span>{personal.workLocation !== "N/A" ? personal.workLocation : "Local não informado"}</span>
                   </motion.div>
                   
@@ -120,7 +181,7 @@ const PersonalDetailModal: React.FC<PersonalDetailModalProps> = ({ isOpen, onClo
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: 0.4 }}
                   >
-                    <FaDollarSign className="mr-3 text-red-600" />
+                    <FaDollarSign className="mr-3 text-blue-600" />
                     <span>{personal.pricePerHour !== "N/A" ? `R$ ${personal.pricePerHour}/hora` : "Valor não informado"}</span>
                   </motion.div>
 
@@ -131,7 +192,7 @@ const PersonalDetailModal: React.FC<PersonalDetailModalProps> = ({ isOpen, onClo
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ delay: 0.5 }}
                     >
-                      <FaPhone className="mr-3 text-red-600" />
+                      <FaPhone className="mr-3 text-blue-600" />
                       <span>{personal.contactInfo.phone}</span>
                     </motion.div>
                   )}
@@ -143,7 +204,7 @@ const PersonalDetailModal: React.FC<PersonalDetailModalProps> = ({ isOpen, onClo
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ delay: 0.6 }}
                     >
-                      <FaEnvelope className="mr-3 text-red-600" />
+                      <FaEnvelope className="mr-3 text-blue-600" />
                       <span>{personal.contactInfo.email}</span>
                     </motion.div>
                   )}
@@ -166,7 +227,7 @@ const PersonalDetailModal: React.FC<PersonalDetailModalProps> = ({ isOpen, onClo
                           animate={{ opacity: 1, x: 0 }}
                           transition={{ delay: 0.7 + index * 0.1 }}
                         >
-                          <FaClock className="mr-3 text-red-600" />
+                          <FaClock className="mr-3 text-blue-600" />
                           <span>{time}</span>
                         </motion.div>
                       ))}
@@ -187,7 +248,7 @@ const PersonalDetailModal: React.FC<PersonalDetailModalProps> = ({ isOpen, onClo
                     {personal.specializations.map((spec, index) => (
                       <motion.span
                         key={index}
-                        className="bg-red-100 text-red-800 text-sm px-3 py-1 rounded-full"
+                        className="bg-blue-100 text-blue-800 text-sm px-3 py-1 rounded-full"
                         initial={{ opacity: 0, scale: 0.8 }}
                         animate={{ opacity: 1, scale: 1 }}
                         transition={{ delay: 0.2 + index * 0.05 }}
