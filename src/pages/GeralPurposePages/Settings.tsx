@@ -1,12 +1,10 @@
 import { FC, useState } from 'react';
-import { FaUser, FaBell, FaLock, FaPalette, FaLanguage, FaQuestionCircle, FaSignOutAlt } from 'react-icons/fa';
+import { FaBell, FaSignOutAlt, FaTrash } from 'react-icons/fa';
 import { Switch } from '@headlessui/react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
-import { useUser } from '../../contexts/UserContext';
 import Swal from 'sweetalert2';
-import ProfileSetup from '../AcademiaPages/AlunoProfileSetup';
-import PersonalProfileSetup from '../AcademiaPages/PersonalProfileSetup';
+import { connectionUrl } from '../../config/connection';
 
 interface SettingsProps {
   userName: string;
@@ -15,24 +13,7 @@ interface SettingsProps {
 const Settings: FC<SettingsProps> = () => {
   const navigate = useNavigate();
   const { logout } = useAuth();
-  const { userData } = useUser();
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
-  const [showProfileSetup, setShowProfileSetup] = useState(false);
-
-  const handleEditProfile = () => {
-    if (!userData?.id) return;
-
-    if (userData.role === 'ACADEMIA') {
-      navigate('/edit-academia-profile');
-      return;
-    }
-
-    setShowProfileSetup(true);
-  };
-
-  const handleProfileSetupSuccess = () => {
-    setShowProfileSetup(false);
-  };
 
   const handleLogout = async () => {
     const result = await Swal.fire({
@@ -52,32 +33,55 @@ const Settings: FC<SettingsProps> = () => {
     }
   };
 
-  const renderProfileSetupModal = () => {
-    if (!showProfileSetup || !userData?.id) return null;
+  const handleDeleteProfile = async () => {
+    const result = await Swal.fire({
+      title: 'Excluir perfil',
+      text: 'Esta ação não pode ser desfeita. Todos os seus dados serão removidos e seus vínculos com alunos, personais ou academias serão desfeitos.',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#d33',
+      cancelButtonColor: '#3085d6',
+      confirmButtonText: 'Sim, excluir perfil',
+      cancelButtonText: 'Cancelar',
+      footer: '<span class="text-sm text-gray-500">Esta ação é definitiva e irreversível</span>'
+    });
 
-    switch (userData.role) {
-      case 'ALUNO':
-        return (
-          <ProfileSetup
-            isOpen={showProfileSetup}
-            onClose={() => setShowProfileSetup(false)}
-            onSuccess={handleProfileSetupSuccess}
-            userId={userData.id.toString()}
-            initialData={userData.preferenciasAluno}
-          />
-        );
-      case 'PERSONAL':
-        return (
-          <PersonalProfileSetup
-            isOpen={showProfileSetup}
-            onClose={() => setShowProfileSetup(false)}
-            onSuccess={handleProfileSetupSuccess}
-            userId={userData.id.toString()}
-            initialData={userData.preferenciasPersonal}
-          />
-        );
-      default:
-        return null;
+    if (result.isConfirmed) {
+      try {
+        const token = localStorage.getItem('token');
+        
+        if (!token) {
+          Swal.fire('Erro', 'Você precisa estar logado para realizar esta ação', 'error');
+          return;
+        }
+
+        const response = await fetch(`${connectionUrl}/excluir-perfil`, {
+          method: 'DELETE',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+          }
+        });
+
+        if (response.ok) {
+          Swal.fire({
+            title: 'Perfil excluído',
+            text: 'Seu perfil foi excluído com sucesso.',
+            icon: 'success',
+            timer: 3000,
+            showConfirmButton: false
+          });
+          
+          // Fazer logout após excluir o perfil
+          logout();
+          navigate('/auth/login');
+        } else {
+          const error = await response.json();
+          Swal.fire('Erro', error.error || 'Erro ao excluir perfil', 'error');
+        }
+      } catch (error) {
+        console.error('Erro ao excluir perfil:', error);
+        Swal.fire('Erro', 'Ocorreu um erro ao excluir seu perfil', 'error');
+      }
     }
   };
 
@@ -88,22 +92,6 @@ const Settings: FC<SettingsProps> = () => {
           <h1 className="text-3xl font-bold text-gray-900 mb-8">Configurações</h1>
 
           <div className="space-y-6">
-            {/* Perfil */}
-            <div className="bg-white rounded-xl p-6 shadow-sm">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-3">
-                  <FaUser className="text-indigo-600 text-xl" />
-                  <span className="text-lg font-medium">Perfil</span>
-                </div>
-                <button
-                  onClick={handleEditProfile}
-                  className="text-indigo-600 hover:text-indigo-800"
-                >
-                  Editar
-                </button>
-              </div>
-            </div>
-
             {/* Notificações */}
             <div className="bg-white rounded-xl p-6 shadow-sm">
               <div className="flex items-center justify-between">
@@ -126,62 +114,6 @@ const Settings: FC<SettingsProps> = () => {
               </div>
             </div>
 
-            {/* Segurança */}
-            <div className="bg-white rounded-xl p-6 shadow-sm">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-3">
-                  <FaLock className="text-indigo-600 text-xl" />
-                  <span className="text-lg font-medium">Segurança</span>
-                </div>
-                <button className="text-indigo-600 hover:text-indigo-800">
-                  Alterar Senha
-                </button>
-              </div>
-            </div>
-
-            {/* Aparência */}
-            <div className="bg-white rounded-xl p-6 shadow-sm">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-3">
-                  <FaPalette className="text-indigo-600 text-xl" />
-                  <span className="text-lg font-medium">Aparência</span>
-                </div>
-                <select className="form-select text-gray-700 border-gray-300 rounded-md">
-                  <option>Claro</option>
-                  <option>Escuro</option>
-                  <option>Sistema</option>
-                </select>
-              </div>
-            </div>
-
-            {/* Idioma */}
-            <div className="bg-white rounded-xl p-6 shadow-sm">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-3">
-                  <FaLanguage className="text-indigo-600 text-xl" />
-                  <span className="text-lg font-medium">Idioma</span>
-                </div>
-                <select className="form-select text-gray-700 border-gray-300 rounded-md">
-                  <option>Português (BR)</option>
-                  <option>English</option>
-                  <option>Español</option>
-                </select>
-              </div>
-            </div>
-
-            {/* Ajuda */}
-            <div className="bg-white rounded-xl p-6 shadow-sm">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-3">
-                  <FaQuestionCircle className="text-indigo-600 text-xl" />
-                  <span className="text-lg font-medium">Ajuda</span>
-                </div>
-                <button className="text-indigo-600 hover:text-indigo-800">
-                  Central de Ajuda
-                </button>
-              </div>
-            </div>
-
             {/* Sair */}
             <div className="bg-white rounded-xl p-6 shadow-sm">
               <div className="flex items-center justify-between">
@@ -197,11 +129,29 @@ const Settings: FC<SettingsProps> = () => {
                 </button>
               </div>
             </div>
+
+            {/* Excluir Perfil */}
+            <div className="bg-white rounded-xl p-6 shadow-sm">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-3">
+                  <FaTrash className="text-red-600 text-xl" />
+                  <span className="text-lg font-medium text-red-600">Excluir Perfil</span>
+                </div>
+                <button
+                  onClick={handleDeleteProfile}
+                  className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+                >
+                  Excluir
+                </button>
+              </div>
+              <p className="mt-2 text-sm text-gray-500">
+                Esta ação excluirá permanentemente seu perfil e removerá todas as suas informações do sistema. 
+                Todos os seus relacionamentos com alunos, personais ou academias serão desvinculados.
+              </p>
+            </div>
           </div>
         </div>
       </div>
-
-      {renderProfileSetupModal()}
     </>
   );
 };
