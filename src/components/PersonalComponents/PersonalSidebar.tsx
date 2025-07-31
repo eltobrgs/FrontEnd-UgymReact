@@ -27,6 +27,7 @@ const PersonalSidebar: FC<PersonalSidebarProps> = ({ userName, userPlan, userIma
     { icon: FaUsers, text: 'Todos os Alunos', path: '/students' },
     { icon: FaUsers, text: 'Meus Alunos', path: '/my-students' },
     { icon: FaDumbbell, text: 'Planos de Treino', path: '/personal-gerencia-treino' },
+    { icon: FaDumbbell, text: 'Treinos Padrões', path: '/personal-standards' },
     { icon: FaChartBar, text: 'Relatórios de alunos', path: '/personal-gerencia-reports' },
     { icon: FaCalendarAlt, text: 'Eventos da Academia', path: '/eventos' },
     { icon: FaCheckSquare, text: 'Lista de Tarefas', path: '/todo-list' },

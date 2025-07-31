@@ -12,7 +12,7 @@ import PersonalGerenciaReports from '../pages/PersonalPages/PersonalGerenciaRepo
 import PersonalEventos from '../pages/PersonalPages/PersonalEventos';
 import Settings from '../pages/GeralPurposePages/Settings';
 import TodoList from '../pages/GeralPurposePages/TodoList';
-
+import PersonalStandards from '../pages/PersonalPages/PersonalStandards';
 interface PersonalRoutesProps {
   userData: UserData | null;
 }
@@ -26,6 +26,7 @@ const PersonalRoutes: FC<PersonalRoutesProps> = ({ userData }) => {
       <Route path="/settings" element={<Settings userName={userData?.name || ''} />} />
       <Route path="/personal-profile" element={<PersonalProfile />} />
       <Route path="/personal-gerencia-treino" element={<PersonalGerenciaTreino />} />
+      <Route path="/personal-standards" element={<PersonalStandards />} />
       <Route path="/personal-gerencia-reports" element={<PersonalGerenciaReports />} />
       <Route path="/eventos" element={<PersonalEventos />} />
       <Route path="/todo-list" element={<TodoList />} />

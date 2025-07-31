@@ -18,9 +18,10 @@ interface Student {
 
 interface AlunosTabsProps {
   containerClassName?: string;
+  onSelectStudent?: (student: Student) => void;
 }
 
-const AlunosTabs: FC<AlunosTabsProps> = ({ containerClassName = "" }) => {
+const AlunosTabs: FC<AlunosTabsProps> = ({ containerClassName = "", onSelectStudent }) => {
   const [activeTab, setActiveTab] = useState<'meus' | 'todos'>('meus');
   const [meusAlunos, setMeusAlunos] = useState<Student[]>([]);
   const [todosAlunos, setTodosAlunos] = useState<Student[]>([]);
@@ -28,76 +29,56 @@ const AlunosTabs: FC<AlunosTabsProps> = ({ containerClassName = "" }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const token = localStorage.getItem('token');
 
-  // Buscar alunos vinculados ao personal
   useEffect(() => {
     const fetchMeusAlunos = async () => {
       try {
         setIsLoading(true);
         const response = await fetch(`${connectionUrl}/personal/meus-alunos`, {
-          headers: {
-            'Authorization': `Bearer ${token}`
-          }
+          headers: { Authorization: `Bearer ${token}` },
         });
-
-        if (!response.ok) {
-          throw new Error('Erro ao buscar alunos vinculados');
-        }
-
+        if (!response.ok) throw new Error('Erro ao buscar alunos vinculados');
         const data = await response.json();
         setMeusAlunos(data);
       } catch (error) {
-        console.error('Erro ao buscar alunos:', error);
+        console.error(error);
         Swal.fire('Erro', 'Não foi possível carregar seus alunos', 'error');
       } finally {
         setIsLoading(false);
       }
     };
 
-    if (token && activeTab === 'meus') {
-      fetchMeusAlunos();
-    }
+    if (token && activeTab === 'meus') fetchMeusAlunos();
   }, [token, activeTab]);
 
-  // Buscar todos os alunos da academia
   useEffect(() => {
     const fetchTodosAlunos = async () => {
       try {
         setIsLoading(true);
         const response = await fetch(`${connectionUrl}/alunos/listar`, {
-          headers: {
-            'Authorization': `Bearer ${token}`
-          }
+          headers: { Authorization: `Bearer ${token}` },
         });
-
-        if (!response.ok) {
-          throw new Error('Erro ao buscar todos os alunos');
-        }
-
+        if (!response.ok) throw new Error('Erro ao buscar todos os alunos');
         const data = await response.json();
         setTodosAlunos(data);
       } catch (error) {
-        console.error('Erro ao buscar todos os alunos:', error);
+        console.error(error);
         Swal.fire('Erro', 'Não foi possível carregar a lista de alunos', 'error');
       } finally {
         setIsLoading(false);
       }
     };
 
-    if (token && activeTab === 'todos') {
-      fetchTodosAlunos();
-    }
+    if (token && activeTab === 'todos') fetchTodosAlunos();
   }, [token, activeTab]);
 
-  // Filtrar alunos com base no termo de pesquisa
   const getFilteredAlunos = () => {
     const alunosList = activeTab === 'meus' ? meusAlunos : todosAlunos;
-    
     if (!searchTerm) return alunosList;
-    
     const term = searchTerm.toLowerCase();
-    return alunosList.filter(aluno => 
-      aluno.name.toLowerCase().includes(term) || 
-      aluno.goal.toLowerCase().includes(term)
+    return alunosList.filter(
+      (aluno) =>
+        aluno.name.toLowerCase().includes(term) ||
+        aluno.goal.toLowerCase().includes(term)
     );
   };
 
@@ -106,8 +87,6 @@ const AlunosTabs: FC<AlunosTabsProps> = ({ containerClassName = "" }) => {
       <div className="p-4 border-b">
         <div className="flex justify-between items-center">
           <h2 className="text-xl font-semibold text-gray-800">Alunos</h2>
-          
-          {/* Campo de pesquisa */}
           <div className="relative">
             <input
               type="text"
@@ -121,7 +100,6 @@ const AlunosTabs: FC<AlunosTabsProps> = ({ containerClassName = "" }) => {
         </div>
       </div>
 
-      {/* Abas */}
       <div className="flex border-b">
         <button
           onClick={() => setActiveTab('meus')}
@@ -163,7 +141,6 @@ const AlunosTabs: FC<AlunosTabsProps> = ({ containerClassName = "" }) => {
         </button>
       </div>
 
-      {/* Conteúdo das Abas */}
       <div className="p-4">
         {isLoading ? (
           <div className="flex justify-center items-center py-8">
@@ -175,30 +152,36 @@ const AlunosTabs: FC<AlunosTabsProps> = ({ containerClassName = "" }) => {
               <FaUsers className="text-gray-400 text-lg" />
             </div>
             <p className="text-gray-500">
-              {activeTab === 'meus' 
-                ? searchTerm 
-                  ? 'Nenhum aluno encontrado com esse termo' 
+              {activeTab === 'meus'
+                ? searchTerm
+                  ? 'Nenhum aluno encontrado com esse termo'
                   : 'Você ainda não tem alunos vinculados'
-                : searchTerm 
-                  ? 'Nenhum aluno encontrado com esse termo' 
-                  : 'Não há alunos cadastrados na academia'
-              }
+                : searchTerm
+                ? 'Nenhum aluno encontrado com esse termo'
+                : 'Não há alunos cadastrados na academia'}
             </p>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-96 overflow-y-auto">
             {getFilteredAlunos().map((aluno) => (
-              <StudentCard
+              <div
                 key={aluno.id}
-                id={aluno.id}
-                name={aluno.name}
-                age={aluno.age}
-                weight={aluno.weight}
-                height={aluno.height}
-                goal={aluno.goal}
-                trainingTime={aluno.trainingTime}
-                imageUrl={aluno.imageUrl}
-              />
+                onClick={() => {
+                  if (onSelectStudent) onSelectStudent(aluno);
+                }}
+                className="cursor-pointer"
+              >
+                <StudentCard
+                  id={aluno.id}
+                  name={aluno.name}
+                  age={aluno.age}
+                  weight={aluno.weight}
+                  height={aluno.height}
+                  goal={aluno.goal}
+                  trainingTime={aluno.trainingTime}
+                  imageUrl={aluno.imageUrl}
+                />
+              </div>
             ))}
           </div>
         )}
@@ -207,4 +190,4 @@ const AlunosTabs: FC<AlunosTabsProps> = ({ containerClassName = "" }) => {
   );
 };
 
-export default AlunosTabs; 
+export default AlunosTabs;
